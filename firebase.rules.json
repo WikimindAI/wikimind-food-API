@@ -1,0 +1,40 @@
+{
+  "rules": {
+    "api_keys": {
+      ".read": "auth != null",
+      "$key": {
+        ".write": "auth != null && (root.child('api_keys/' + $key + '/userId').val() === auth.uid || root.child('admins/' + auth.uid).exists())",
+        ".validate": "newData.hasChildren(['userId', 'name', 'createdAt']) && newData.child('userId').val() != null && newData.child('name').val() != null && newData.child('createdAt').val() != null"
+      }
+    },
+    "food_data": {
+      ".read": true,
+      ".write": false
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('admins/' + auth.uid).exists())",
+        ".write": "auth != null && (auth.uid === $uid || root.child('admins/' + auth.uid).exists())",
+        ".validate": "newData.hasChild('email')"
+      }
+    },
+    "api_keys_by_user": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "admins": {
+      ".read": "auth != null && root.child('admins/' + auth.uid).exists()",
+      ".write": "auth != null && root.child('admins/' + auth.uid).exists()"
+    },
+    "usage_logs": {
+      ".read": "auth != null && root.child('admins/' + auth.uid).exists()",
+      ".write": "auth != null"
+    },
+    "stats": {
+      ".read": true,
+      ".write": "auth != null && root.child('admins/' + auth.uid).exists()"
+    }
+  }
+}

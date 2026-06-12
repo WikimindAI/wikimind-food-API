@@ -1,16 +1,20 @@
 import { database, ref, set, get, push, remove, onValue, query, orderByChild } from './firebase-config.js';
-import { auth } from './firebase-config.js';
+import { auth, onAuthStateChanged, signInWithPopup, googleProvider } from './firebase-config.js';
 
 // API Key prefix
 const API_KEY_PREFIX = 'wm-fd';
 
-// Generate random API key
+// ============================================
+// FONCTIONS DE GÉNÉRATION DE CLÉS API
+// ============================================
+
+// Générer une clé API aléatoire
 function generateApiKey() {
     const randomNum = Math.floor(10000000 + Math.random() * 90000000);
     return `${API_KEY_PREFIX}${randomNum}`;
 }
 
-// Check if API key exists
+// Vérifier si une clé API existe déjà
 async function apiKeyExists(key) {
     const keysRef = ref(database, 'apiKeys');
     const snapshot = await get(keysRef);
@@ -19,40 +23,33 @@ async function apiKeyExists(key) {
         const keys = snapshot.val();
         return Object.values(keys).some(k => k.key === key);
     }
-
     return false;
 }
 
-// Generate a unique API key
+// Générer une clé API unique
 async function generateUniqueApiKey() {
     let key;
     let exists;
-
     do {
         key = generateApiKey();
         exists = await apiKeyExists(key);
     } while (exists);
-
     return key;
 }
 
-// Create a new API key
+// Créer une nouvelle clé API
 async function createApiKey(name, expiryDays = 30) {
     const user = auth.currentUser;
     if (!user) {
         throw new Error('Vous devez être connecté pour créer une clé API');
     }
 
-    // Generate unique key
     const key = await generateUniqueApiKey();
-
-    // Calculate expiry date
     const expiryDate = expiryDays === 0 ? null : new Date();
     if (expiryDate) {
         expiryDate.setDate(expiryDate.getDate() + expiryDays);
     }
 
-    // Create API key data
     const apiKeyData = {
         id: push(ref(database, 'apiKeys')).key,
         key: key,
@@ -66,14 +63,11 @@ async function createApiKey(name, expiryDays = 30) {
         lastUsedAt: null
     };
 
-    // Save to database
     const keyRef = ref(database, `apiKeys/${apiKeyData.id}`);
     await set(keyRef, apiKeyData);
 
-    // Add to user's API keys
     const userRef = ref(database, `users/${user.uid}/apiKeys`);
     const userKeysSnapshot = await get(userRef);
-
     let userKeys = [];
     if (userKeysSnapshot.exists()) {
         userKeys = userKeysSnapshot.val() || [];
@@ -88,50 +82,40 @@ async function createApiKey(name, expiryDays = 30) {
     });
 
     await set(userRef, userKeys);
-
     return apiKeyData;
 }
 
-// Get user's API keys
+// Récupérer les clés API de l'utilisateur
 async function getUserApiKeys() {
     const user = auth.currentUser;
     if (!user) return [];
 
     const userRef = ref(database, `users/${user.uid}/apiKeys`);
     const snapshot = await get(userRef);
-
-    if (snapshot.exists()) {
-        return Object.values(snapshot.val() || []);
-    }
-
-    return [];
+    return snapshot.exists() ? Object.values(snapshot.val() || []) : [];
 }
 
-// Delete an API key
+// Supprimer une clé API
 async function deleteApiKey(keyId) {
     const user = auth.currentUser;
     if (!user) {
         throw new Error('Vous devez être connecté pour supprimer une clé API');
     }
 
-    // Delete from apiKeys collection
     const keyRef = ref(database, `apiKeys/${keyId}`);
     await remove(keyRef);
 
-    // Remove from user's API keys
     const userRef = ref(database, `users/${user.uid}/apiKeys`);
     const snapshot = await get(userRef);
-
     if (snapshot.exists()) {
         const userKeys = snapshot.val() || [];
         const updatedKeys = userKeys.filter(k => k.id !== keyId);
         await set(userRef, updatedKeys);
     }
-
     return true;
 }
 
-// Validate an API key
+// Valider une clé API
 async function validateApiKey(key) {
     if (!key || !key.startsWith(API_KEY_PREFIX)) {
         return { valid: false, error: 'Format de clé API invalide' };
@@ -139,14 +123,12 @@ async function validateApiKey(key) {
 
     const keysRef = ref(database, 'apiKeys');
     const snapshot = await get(keysRef);
-
     if (!snapshot.exists()) {
         return { valid: false, error: 'Clé API non trouvée' };
     }
 
     const keys = snapshot.val();
     const apiKey = Object.values(keys).find(k => k.key === key);
-
     if (!apiKey) {
         return { valid: false, error: 'Clé API non trouvée' };
     }
@@ -159,7 +141,6 @@ async function validateApiKey(key) {
         return { valid: false, error: 'Clé API expirée' };
     }
 
-    // Update last used and request count
     const keyRef = ref(database, `apiKeys/${apiKey.id}`);
     await set(keyRef, {
         ...apiKey,
@@ -179,36 +160,64 @@ async function validateApiKey(key) {
     };
 }
 
-// Get API key statistics
+// Statistiques des clés API
 async function getApiKeyStats() {
     const user = auth.currentUser;
     if (!user) return {};
 
     const userRef = ref(database, `users/${user.uid}/apiKeys`);
     const snapshot = await get(userRef);
-
     if (!snapshot.exists()) {
-        return {
-            totalKeys: 0,
-            activeKeys: 0,
-            expiredKeys: 0
-        };
+        return { totalKeys: 0, activeKeys: 0, expiredKeys: 0 };
     }
 
     const userKeys = Object.values(snapshot.val() || []);
     const now = new Date();
-
-    const stats = {
+    return {
         totalKeys: userKeys.length,
         activeKeys: userKeys.filter(k => !k.expiresAt || new Date(k.expiresAt) > now).length,
         expiredKeys: userKeys.filter(k => k.expiresAt && new Date(k.expiresAt) <= now).length
     };
-
-    return stats;
 }
 
-// Generate bot challenge
-function generateBotChallenge() {
+// ============================================
+// GESTION DU CHALLENGE ANTI-BOT
+// ============================================
+
+// Générer un challenge anti-bot (vérifie la connexion d'abord)
+async function generateBotChallenge() {
+    const user = auth.currentUser;
+
+    // Si l'utilisateur n'est PAS connecté → afficher la popup Firebase
+    if (!user) {
+        try {
+            await signInWithPopup(auth, googleProvider);
+
+            // Attendre que l'utilisateur soit connecté
+            await new Promise((resolve) => {
+                const unsubscribe = onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        unsubscribe();
+                        resolve();
+                    }
+                });
+            });
+
+            // Une fois connecté, générer le challenge
+            _generateBotChallengeInternal();
+        } catch (error) {
+            console.log("Connexion annulée:", error.code);
+            return;
+        }
+        return;
+    }
+
+    // Si déjà connecté → générer le challenge directement
+    _generateBotChallengeInternal();
+}
+
+// Fonction interne pour générer le challenge (appelée une fois connecté)
+function _generateBotChallengeInternal() {
     const challenges = [
         {
             type: 'math',
@@ -220,18 +229,18 @@ function generateBotChallenge() {
         },
         {
             type: 'color',
-            question: 'Quelle est la couleur du ciel par temps clair ? (en français)',
+            question: 'Quelle est la couleur du ciel par temps clair ? (répondez en minuscule)',
             answer: 'bleu'
         },
         {
             type: 'animal',
-            question: 'Quel animal est connu pour être "le roi de la jungle" ? (en français)',
+            question: 'Quel animal est connu pour être "le roi de la jungle" ? (répondez en minuscule)',
             answer: 'lion'
         },
         {
             type: 'capital',
-            question: 'Quelle est la capitale de la France ?',
-            answer: 'Paris'
+            question: 'Quelle est la capitale de la France ? (répondez en minuscule)',
+            answer: 'paris'
         },
         {
             type: 'reverse',
@@ -251,24 +260,23 @@ function generateBotChallenge() {
             <div class="wm-bot-challenge-question">${challenge.question}</div>
             <input type="hidden" id="currentChallengeAnswer" value="${challenge.answer()}">
         `;
-
-        // Show the challenge group
         document.getElementById('botChallengeGroup').style.display = 'block';
         document.getElementById('createApiKeyBtn').disabled = false;
     }
-
-    return challenge;
 }
 
-// Check bot challenge answer
+// Vérifier la réponse du challenge
 function checkBotChallengeAnswer() {
     const userAnswer = document.getElementById('botChallengeAnswer').value.trim().toLowerCase();
     const correctAnswer = document.getElementById('currentChallengeAnswer').value.trim().toLowerCase();
-
     return userAnswer === correctAnswer;
 }
 
-// Show API key modal
+// ============================================
+// GESTION DE L'INTERFACE
+// ============================================
+
+// Afficher le modal de clé API créée
 function showApiKeyModal(apiKeyData) {
     const modal = document.getElementById('apiKeyModal');
     const keyElement = document.getElementById('generatedApiKey');
@@ -294,7 +302,7 @@ function showApiKeyModal(apiKeyData) {
     }
 }
 
-// Close API key modal
+// Fermer le modal de clé API
 function closeApiKeyModal() {
     const modal = document.getElementById('apiKeyModal');
     if (modal) {
@@ -302,7 +310,7 @@ function closeApiKeyModal() {
     }
 }
 
-// Copy API key to clipboard
+// Copier la clé API
 function copyApiKey() {
     const keyElement = document.getElementById('generatedApiKey');
     if (keyElement) {
@@ -316,7 +324,7 @@ function copyApiKey() {
     }
 }
 
-// Close delete modal
+// Fermer le modal de suppression
 function closeDeleteModal() {
     const modal = document.getElementById('deleteModal');
     if (modal) {
@@ -324,7 +332,7 @@ function closeDeleteModal() {
     }
 }
 
-// Show delete modal
+// Afficher le modal de suppression
 function showDeleteModal(keyName, keyId) {
     const modal = document.getElementById('deleteModal');
     const nameElement = document.getElementById('deleteKeyName');
@@ -336,7 +344,7 @@ function showDeleteModal(keyName, keyId) {
     }
 }
 
-// Confirm delete API key
+// Confirmer la suppression
 async function confirmDeleteApiKey() {
     const modal = document.getElementById('deleteModal');
     const keyId = modal.getAttribute('data-key-id');
@@ -354,7 +362,7 @@ async function confirmDeleteApiKey() {
     }
 }
 
-// Refresh API keys list
+// Rafraîchir la liste des clés API
 async function refreshApiKeys() {
     const user = auth.currentUser;
     if (!user) return;
@@ -418,13 +426,12 @@ async function refreshApiKeys() {
                 }).join('');
             }
 
-            // Update stats
             const totalKeysEl = document.getElementById('totalKeys');
             const totalRequestsEl = document.getElementById('totalRequests');
             const oldestKeyEl = document.getElementById('oldestKey');
 
             if (totalKeysEl) totalKeysEl.textContent = stats.totalKeys || 0;
-            if (totalRequestsEl) totalRequestsEl.textContent = '0'; // Would need tracking
+            if (totalRequestsEl) totalRequestsEl.textContent = '0';
             if (oldestKeyEl) {
                 if (apiKeys.length > 0) {
                     const oldestKey = new Date(Math.min(...apiKeys.map(k => new Date(k.createdAt))));
@@ -440,27 +447,24 @@ async function refreshApiKeys() {
     }
 }
 
-// Escape HTML to prevent XSS
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// Initialize API manager
+// Initialiser le gestionnaire d'API
 function initApiManager() {
-    // Create API key form
     const createApiKeyForm = document.getElementById('createApiKeyForm');
     if (createApiKeyForm) {
         createApiKeyForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const user = auth.currentUser;
+            if (!user) {
+                showNotification('Veuillez vous connecter pour créer une clé API', 'error');
+                return;
+            }
 
             const name = document.getElementById('apiKeyName').value.trim();
             const expiry = parseInt(document.getElementById('apiKeyExpiry').value);
             const answer = document.getElementById('botChallengeAnswer').value.trim();
             const createBtn = document.getElementById('createApiKeyBtn');
 
-            // Validation
             if (!name) {
                 showNotification('Veuillez donner un nom à votre clé API', 'error');
                 return;
@@ -471,13 +475,11 @@ function initApiManager() {
                 return;
             }
 
-            // Check bot challenge
             if (!checkBotChallengeAnswer()) {
                 showNotification('Réponse incorrecte au test anti-bot', 'error');
                 return;
             }
 
-            // Show loading
             createBtn.querySelector('.wm-btn-text').style.display = 'none';
             createBtn.querySelector('.wm-btn-loader').style.display = 'block';
             createBtn.disabled = true;
@@ -486,15 +488,12 @@ function initApiManager() {
                 const apiKeyData = await createApiKey(name, expiry === 0 ? 0 : expiry);
                 showApiKeyModal(apiKeyData);
                 refreshApiKeys();
-
-                // Reset form
                 createApiKeyForm.reset();
                 document.getElementById('botChallengeGroup').style.display = 'none';
             } catch (error) {
                 console.error('Error creating API key:', error);
                 showNotification(error.message || 'Erreur lors de la création de la clé API', 'error');
             } finally {
-                // Hide loading
                 createBtn.querySelector('.wm-btn-text').style.display = 'block';
                 createBtn.querySelector('.wm-btn-loader').style.display = 'none';
                 createBtn.disabled = false;
@@ -502,23 +501,24 @@ function initApiManager() {
         });
     }
 
-    // Refresh API keys on page load
     refreshApiKeys();
 }
 
-// Initialize on load
-window.addEventListener('DOMContentLoaded', () => {
-    initApiManager();
+// Escape HTML pour éviter XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
-    // Make functions available globally
-    window.generateBotChallenge = generateBotChallenge;
-    window.closeApiKeyModal = closeApiKeyModal;
-    window.copyApiKey = copyApiKey;
-    window.closeDeleteModal = closeDeleteModal;
-    window.showDeleteModal = showDeleteModal;
-    window.confirmDeleteApiKey = confirmDeleteApiKey;
-    window.refreshApiKeys = refreshApiKeys;
-});
+// Initialiser au chargement
+window.addEventListener('DOMContentLoaded', initApiManager);
 
-// Export functions
-export { createApiKey, getUserApiKeys, deleteApiKey, validateApiKey, generateBotChallenge, generateUniqueApiKey };
+// Exporter les fonctions pour un accès global
+window.generateBotChallenge = generateBotChallenge;
+window.closeApiKeyModal = closeApiKeyModal;
+window.copyApiKey = copyApiKey;
+window.closeDeleteModal = closeDeleteModal;
+window.showDeleteModal = showDeleteModal;
+window.confirmDeleteApiKey = confirmDeleteApiKey;
+window.refreshApiKeys = refreshApiKeys;

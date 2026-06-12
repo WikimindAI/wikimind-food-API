@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikimind Food API | Accueil</title>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="wm-header">
+            <div class="wm-container">
+                <div class="wm-logo">WIKIMIND <span class="wm-logo-sub">FOOD API</span></div>
+                <nav class="wm-nav">
+                    <a href="index.html" class="wm-nav-item active">Accueil</a>
+                    <a href="docs.html" class="wm-nav-item">Documentation</a>
+                    <a href="test-api.html" class="wm-nav-item">Tester l'API</a>
+                    <a href="auth.html" class="wm-nav-item wm-btn-primary">Se connecter</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="wm-hero">
+            <div class="wm-container">
+                <div class="wm-hero-content">
+                    <h1 class="wm-hero-title">Créez votre propre API alimentaire</h1>
+                    <p class="wm-hero-subtitle">Accédez à plus de 2000 aliments de la base CIQUAL 2025 avec une API personnalisée et sécurisée.</p>
+                    <div class="wm-hero-buttons">
+                        <a href="auth.html" class="wm-btn wm-btn-primary wm-btn-large">Commencer maintenant</a>
+                        <a href="docs.html" class="wm-btn wm-btn-secondary wm-btn-large">Voir la documentation</a>
+                    </div>
+                </div>
+                <div class="wm-hero-visual">
+                    <div class="wm-api-preview">
+                        <div class="wm-code-block">
+                            <div class="wm-code-header">
+                                <span class="wm-code-dot red"></span>
+                                <span class="wm-code-dot yellow"></span>
+                                <span class="wm-code-dot green"></span>
+                                <span class="wm-code-title">Exemple de requête</span>
+                            </div>
+                            <pre><code class="language-javascript">fetch('https://your-api-endpoint.com/food', {
+  headers: {
+    'X-API-KEY': 'wm-fd12345678'
+  }
+})
+.then(response => response.json())
+.then(data => console.log(data));</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="wm-features">
+            <div class="wm-container">
+                <h2 class="wm-section-title">Fonctionnalités</h2>
+                <div class="wm-features-grid">
+                    <div class="wm-feature-card">
+                        <div class="wm-feature-icon">🔑</div>
+                        <h3>Génération de clés API</h3>
+                        <p>Créez des clés API uniques avec expiration automatique et protection anti-bot.</p>
+                    </div>
+                    <div class="wm-feature-card">
+                        <div class="wm-feature-icon">📊</div>
+                        <h3>Base de données complète</h3>
+                        <p>Accès à toutes les données nutritionnelles CIQUAL 2025 (2000+ aliments).</p>
+                    </div>
+                    <div class="wm-feature-card">
+                        <div class="wm-feature-icon">🔒</div>
+                        <h3>Sécurité avancée</h3>
+                        <p>Authentification Firebase et validation des clés API pour chaque requête.</p>
+                    </div>
+                    <div class="wm-feature-card">
+                        <div class="wm-feature-icon">⚡</div>
+                        <h3>Test en temps réel</h3>
+                        <p>Interface intégrée pour tester votre API avant utilisation.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Example Section -->
+        <section class="wm-api-example">
+            <div class="wm-container">
+                <h2 class="wm-section-title">Exemple de réponse API</h2>
+                <div class="wm-api-example-content">
+                    <div class="wm-code-block wm-code-block-large">
+                        <div class="wm-code-header">
+                            <span class="wm-code-dot red"></span>
+                            <span class="wm-code-dot yellow"></span>
+                            <span class="wm-code-dot green"></span>
+                            <span class="wm-code-title">GET /food?query=pomme</span>
+                        </div>
+                        <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "id": "26213",
+    "names": {
+      "fr": "Pomme crue"
+    },
+    "nutrition": {
+      "energy": { "value": 52, "unit": "kcal" },
+      "carbohydrates": { "value": 13.8, "unit": "g" },
+      "fats": { "value": 0.2, "unit": "g" }
+    },
+    "categories": {
+      "group_name": "Fruits",
+      "subgroup_name": "Fruits frais"
+    }
+  },
+  "timestamp": "2026-06-12T10:00:00Z"
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="wm-cta">
+            <div class="wm-container">
+                <h2>Prêt à commencer ?</h2>
+                <p>Créez votre compte gratuitement et obtenez votre clé API en quelques minutes.</p>
+                <a href="auth.html" class="wm-btn wm-btn-primary wm-btn-large">Créer mon API</a>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="wm-footer">
+        <div class="wm-container">
+            <div class="wm-footer-content">
+                <div class="wm-footer-brand">
+                    <div class="wm-logo">WIKIMIND</div>
+                    <p>API Alimentaire</p>
+                </div>
+                <div class="wm-footer-links">
+                    <div class="wm-footer-column">
+                        <h4>Liens rapides</h4>
+                        <a href="index.html">Accueil</a>
+                        <a href="docs.html">Documentation</a>
+                        <a href="test-api.html">Tester l'API</a>
+                    </div>
+                    <div class="wm-footer-column">
+                        <h4>Ressources</h4>
+                        <a href="https://github.com/WikimindAI/wikimind-food-API" target="_blank">GitHub</a>
+                        <a href="#">Statut API</a>
+                        <a href="#">Changelog</a>
+                    </div>
+                </div>
+            </div>
+            <div class="wm-footer-bottom">
+                <p>© 2026 Wikimind AI. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="assets/js/firebase-config.js"></script>
+    <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>

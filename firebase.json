@@ -1,0 +1,23 @@
+{
+  "database": {
+    "rules": "firebase.rules.json"
+  },
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "**/functions/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "function": {
+          "region": "europe-west1",
+          "functionName": "api"
+        }
+      }
+    ]
+  }
+}

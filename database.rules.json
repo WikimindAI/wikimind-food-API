@@ -1,0 +1,29 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid",
+        "apiKeys": {
+          ".read": "auth != null && auth.uid == $uid",
+          ".write": "auth != null && auth.uid == $uid"
+        }
+      }
+    },
+    "apiKeys": {
+      ".read": "auth != null",
+      "$key": {
+        ".read": "auth != null",
+        ".write": "auth != null && (
+          newData.child('userId').val() == auth.uid ||
+          root.child('apiKeys/' + $key + '/userId').val() == auth.uid
+        )",
+        ".validate": "newData.hasChildren(['key', 'name', 'userId', 'createdAt'])"
+      }
+    },
+    "foodData": {
+      ".read": "auth != null",
+      ".write": false
+    }
+  }
+}

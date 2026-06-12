@@ -1,23 +1,50 @@
 {
-  "database": {
-    "rules": "firebase.rules.json"
-  },
   "hosting": {
-    "public": ".",
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**",
-      "**/functions/**"
+      "**/node_modules/**"
     ],
     "rewrites": [
       {
         "source": "/api/**",
         "function": {
           "region": "europe-west1",
-          "functionName": "api"
+          "functionName": "searchFood"
+        }
+      },
+      {
+        "source": "/api/food/search",
+        "function": {
+          "region": "europe-west1",
+          "functionName": "searchFood"
+        }
+      },
+      {
+        "source": "/api/food/:id",
+        "function": {
+          "region": "europe-west1",
+          "functionName": "getFoodById"
+        }
+      },
+      {
+        "source": "/api/categories",
+        "function": {
+          "region": "europe-west1",
+          "functionName": "getCategories"
+        }
+      },
+      {
+        "source": "/api/food/advanced",
+        "function": {
+          "region": "europe-west1",
+          "functionName": "advancedSearch"
         }
       }
     ]
+  },
+  "database": {
+    "rules": "database.rules.json"
   }
 }

@@ -345,10 +345,9 @@ SOFTWARE.
 
 ## 📞 Contact
 
-- **Site web** : [https://wikimind.ai](https://wikimind.ai)
-- **Email** : [support@wikimind.ai](mailto:support@wikimind.ai)
+- **Site web** : [https://chpalitom09-bot.github.io/Wikimind-3/](https://chpalitom09-bot.github.io/Wikimind-3/)
+- **Email** : [wikimind.ai@gmail.com](mailto:wikimind.ai@gmail.com)
 - **GitHub** : [WikimindAI](https://github.com/WikimindAI)
-- **Twitter** : [@WikimindAI](https://twitter.com/WikimindAI)
 
 ---
 

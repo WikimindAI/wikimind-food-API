@@ -1,4 +1,4 @@
-import { auth, onAuthStateChanged } from './firebase-config.js';
+import { auth } from './firebase-config.js';
 import { getUserApiKeys, validateApiKey } from './api-manager.js';
 
 // Global state
@@ -7,35 +7,18 @@ let currentUser = null;
 // Initialize the application
 function initApp() {
     // Auth state listener
-    onAuthStateChanged(auth, (user) => {
-        currentUser = user;
-        updateUIForAuth(user);
-
-        // Load user data if logged in
-        if (user) {
-            loadUserData(user);
-        }
-    });
+    if (auth) {
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            updateUIForAuth(user);
+            if (user) {
+                loadUserData(user);
+            }
+        });
+    }
 
     // Initialize page-specific functionality
     initPageSpecific();
-
-    // Add smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-
-                // Update active nav link
-                updateActiveNavLink(this);
-            }
-        });
-    });
 }
 
 // Update UI based on auth state
@@ -44,53 +27,23 @@ function updateUIForAuth(user) {
     const guestOnlyElements = document.querySelectorAll('[data-guest-only]');
 
     if (user) {
-        // Show elements for authenticated users
-        authRequiredElements.forEach(el => {
-            el.style.display = '';
-        });
-
-        // Hide elements for guests
-        guestOnlyElements.forEach(el => {
-            el.style.display = 'none';
-        });
+        authRequiredElements.forEach(el => el.style.display = '');
+        guestOnlyElements.forEach(el => el.style.display = 'none');
     } else {
-        // Hide elements for authenticated users
-        authRequiredElements.forEach(el => {
-            el.style.display = 'none';
-        });
-
-        // Show elements for guests
-        guestOnlyElements.forEach(el => {
-            el.style.display = '';
-        });
+        authRequiredElements.forEach(el => el.style.display = 'none');
+        guestOnlyElements.forEach(el => el.style.display = '');
     }
 }
 
 // Load user data
 async function loadUserData(user) {
     try {
-        // Load API keys if on dashboard
-        if (window.location.pathname.includes('dashboard.html')) {
-            await refreshApiKeys();
+        if (window.location.pathname.includes('dashboard.html') && window.refreshApiKeys) {
+            await window.refreshApiKeys();
         }
     } catch (error) {
         console.error('Error loading user data:', error);
     }
-}
-
-// Update active navigation link
-function updateActiveNavLink(activeLink) {
-    const navLinks = document.querySelectorAll('.wm-nav-item, .wm-docs-link');
-
-    navLinks.forEach(link => {
-        link.classList.remove('active');
-
-        // Check if this link matches the clicked one
-        if (link === activeLink ||
-            (activeLink.href && link.href === activeLink.href)) {
-            link.classList.add('active');
-        }
-    });
 }
 
 // Initialize page-specific functionality
@@ -114,23 +67,17 @@ function initPageSpecific() {
 }
 
 // Home page initialization
-function initHomePage() {
-    // Add any home page specific functionality here
-}
+function initHomePage() {}
 
 // Dashboard page initialization
-function initDashboardPage() {
-    // Already handled by api-manager.js
-}
+function initDashboardPage() {}
 
 // Test API page initialization
 function initTestApiPage() {
-    // Load subgroups when group is selected
     const groupSelect = document.getElementById('advGroup');
     const subgroupSelect = document.getElementById('advSubgroup');
 
     if (groupSelect && subgroupSelect) {
-        // This would be populated from the API in a real implementation
         const subgroups = {
             '1': ['Salades composées et crudités', 'Soupes', 'Plats composés'],
             '2': ['Viandes de boucherie', 'Viandes de volaille', 'Abats'],
@@ -159,7 +106,6 @@ function initTestApiPage() {
 
 // Docs page initialization
 function initDocsPage() {
-    // Update active section in sidebar based on scroll position
     const sections = document.querySelectorAll('.wm-docs-section');
     const navLinks = document.querySelectorAll('.wm-docs-link');
 
@@ -171,7 +117,6 @@ function initDocsPage() {
             sections.forEach(section => {
                 const sectionTop = section.offsetTop;
                 const sectionHeight = section.offsetHeight;
-
                 if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
                     current = section.getAttribute('id');
                 }
@@ -187,8 +132,17 @@ function initDocsPage() {
     }
 }
 
-// Test API functions
+// ============================================
+// FONCTIONS DE TEST API (avec vérification de connexion)
+// ============================================
+
 async function testSearchFood() {
+    const user = auth.currentUser;
+    if (!user) {
+        showNotification('Veuillez vous connecter pour tester l\'API', 'error');
+        return;
+    }
+
     const query = document.getElementById('searchQuery').value.trim();
     const limit = parseInt(document.getElementById('searchLimit').value) || 5;
     const apiKey = document.getElementById('testApiKey').value.trim();
@@ -200,31 +154,26 @@ async function testSearchFood() {
         return;
     }
 
-    // Show loading in button
-    const btn = event.target.closest('.wm-btn');
-    btn.querySelector('.wm-btn-text').style.display = 'none';
-    btn.querySelector('.wm-btn-loader').style.display = 'block';
+    const btn = event.target.closest('.wm-btn') || event.currentTarget;
+    const btnText = btn.querySelector('.wm-btn-text');
+    const btnLoader = btn.querySelector('.wm-btn-loader');
+
+    btnText.style.display = 'none';
+    btnLoader.style.display = 'block';
     btn.disabled = true;
 
     try {
-        // In a real implementation, this would call the actual API
-        // For demo purposes, we'll simulate a response
         const response = await simulateApiCall('search', { query, limit }, apiKey);
-
         if (resultElement) {
             resultElement.textContent = JSON.stringify(response, null, 2);
         }
-
         if (resultContainer) {
             resultContainer.classList.add('wm-result-success');
-            setTimeout(() => {
-                resultContainer.classList.remove('wm-result-success');
-            }, 2000);
+            setTimeout(() => resultContainer.classList.remove('wm-result-success'), 2000);
         }
     } catch (error) {
         console.error('API test error:', error);
         showNotification(error.message || 'Erreur lors du test de l\'API', 'error');
-
         if (resultElement) {
             resultElement.textContent = JSON.stringify({
                 success: false,
@@ -232,16 +181,19 @@ async function testSearchFood() {
             }, null, 2);
         }
     } finally {
-        // Hide loading
-        if (btn) {
-            btn.querySelector('.wm-btn-text').style.display = 'block';
-            btn.querySelector('.wm-btn-loader').style.display = 'none';
-            btn.disabled = false;
-        }
+        btnText.style.display = 'block';
+        btnLoader.style.display = 'none';
+        btn.disabled = false;
     }
 }
 
 async function testGetFoodById() {
+    const user = auth.currentUser;
+    if (!user) {
+        showNotification('Veuillez vous connecter pour tester l\'API', 'error');
+        return;
+    }
+
     const foodId = document.getElementById('foodId').value.trim();
     const resultElement = document.getElementById('foodByIdResultCode');
     const resultContainer = document.getElementById('foodByIdResult');
@@ -251,29 +203,26 @@ async function testGetFoodById() {
         return;
     }
 
-    // Show loading in button
-    const btn = event.target.closest('.wm-btn');
-    btn.querySelector('.wm-btn-text').style.display = 'none';
-    btn.querySelector('.wm-btn-loader').style.display = 'block';
+    const btn = event.target.closest('.wm-btn') || event.currentTarget;
+    const btnText = btn.querySelector('.wm-btn-text');
+    const btnLoader = btn.querySelector('.wm-btn-loader');
+
+    btnText.style.display = 'none';
+    btnLoader.style.display = 'block';
     btn.disabled = true;
 
     try {
         const response = await simulateApiCall('food', { id: foodId });
-
         if (resultElement) {
             resultElement.textContent = JSON.stringify(response, null, 2);
         }
-
         if (resultContainer) {
             resultContainer.classList.add('wm-result-success');
-            setTimeout(() => {
-                resultContainer.classList.remove('wm-result-success');
-            }, 2000);
+            setTimeout(() => resultContainer.classList.remove('wm-result-success'), 2000);
         }
     } catch (error) {
         console.error('API test error:', error);
         showNotification(error.message || 'Erreur lors du test de l\'API', 'error');
-
         if (resultElement) {
             resultElement.textContent = JSON.stringify({
                 success: false,
@@ -281,42 +230,42 @@ async function testGetFoodById() {
             }, null, 2);
         }
     } finally {
-        // Hide loading
-        if (btn) {
-            btn.querySelector('.wm-btn-text').style.display = 'block';
-            btn.querySelector('.wm-btn-loader').style.display = 'none';
-            btn.disabled = false;
-        }
+        btnText.style.display = 'block';
+        btnLoader.style.display = 'none';
+        btn.disabled = false;
     }
 }
 
 async function testGetCategories() {
+    const user = auth.currentUser;
+    if (!user) {
+        showNotification('Veuillez vous connecter pour tester l\'API', 'error');
+        return;
+    }
+
     const resultElement = document.getElementById('categoriesResultCode');
     const resultContainer = document.getElementById('categoriesResult');
 
-    // Show loading in button
-    const btn = event.target.closest('.wm-btn');
-    btn.querySelector('.wm-btn-text').style.display = 'none';
-    btn.querySelector('.wm-btn-loader').style.display = 'block';
+    const btn = event.target.closest('.wm-btn') || event.currentTarget;
+    const btnText = btn.querySelector('.wm-btn-text');
+    const btnLoader = btn.querySelector('.wm-btn-loader');
+
+    btnText.style.display = 'none';
+    btnLoader.style.display = 'block';
     btn.disabled = true;
 
     try {
         const response = await simulateApiCall('categories');
-
         if (resultElement) {
             resultElement.textContent = JSON.stringify(response, null, 2);
         }
-
         if (resultContainer) {
             resultContainer.classList.add('wm-result-success');
-            setTimeout(() => {
-                resultContainer.classList.remove('wm-result-success');
-            }, 2000);
+            setTimeout(() => resultContainer.classList.remove('wm-result-success'), 2000);
         }
     } catch (error) {
         console.error('API test error:', error);
         showNotification(error.message || 'Erreur lors du test de l\'API', 'error');
-
         if (resultElement) {
             resultElement.textContent = JSON.stringify({
                 success: false,
@@ -324,16 +273,19 @@ async function testGetCategories() {
             }, null, 2);
         }
     } finally {
-        // Hide loading
-        if (btn) {
-            btn.querySelector('.wm-btn-text').style.display = 'block';
-            btn.querySelector('.wm-btn-loader').style.display = 'none';
-            btn.disabled = false;
-        }
+        btnText.style.display = 'block';
+        btnLoader.style.display = 'none';
+        btn.disabled = false;
     }
 }
 
 async function testAdvancedQuery() {
+    const user = auth.currentUser;
+    if (!user) {
+        showNotification('Veuillez vous connecter pour tester l\'API', 'error');
+        return;
+    }
+
     const group = document.getElementById('advGroup').value;
     const subgroup = document.getElementById('advSubgroup').value;
     const minEnergy = parseFloat(document.getElementById('advMinEnergy').value) || 0;
@@ -342,10 +294,12 @@ async function testAdvancedQuery() {
     const resultElement = document.getElementById('advancedResultCode');
     const resultContainer = document.getElementById('advancedResult');
 
-    // Show loading in button
-    const btn = event.target.closest('.wm-btn');
-    btn.querySelector('.wm-btn-text').style.display = 'none';
-    btn.querySelector('.wm-btn-loader').style.display = 'block';
+    const btn = event.target.closest('.wm-btn') || event.currentTarget;
+    const btnText = btn.querySelector('.wm-btn-text');
+    const btnLoader = btn.querySelector('.wm-btn-loader');
+
+    btnText.style.display = 'none';
+    btnLoader.style.display = 'block';
     btn.disabled = true;
 
     try {
@@ -356,21 +310,16 @@ async function testAdvancedQuery() {
             maxEnergy,
             limit
         });
-
         if (resultElement) {
             resultElement.textContent = JSON.stringify(response, null, 2);
         }
-
         if (resultContainer) {
             resultContainer.classList.add('wm-result-success');
-            setTimeout(() => {
-                resultContainer.classList.remove('wm-result-success');
-            }, 2000);
+            setTimeout(() => resultContainer.classList.remove('wm-result-success'), 2000);
         }
     } catch (error) {
         console.error('API test error:', error);
         showNotification(error.message || 'Erreur lors du test de l\'API', 'error');
-
         if (resultElement) {
             resultElement.textContent = JSON.stringify({
                 success: false,
@@ -378,33 +327,27 @@ async function testAdvancedQuery() {
             }, null, 2);
         }
     } finally {
-        // Hide loading
-        if (btn) {
-            btn.querySelector('.wm-btn-text').style.display = 'block';
-            btn.querySelector('.wm-btn-loader').style.display = 'none';
-            btn.disabled = false;
-        }
+        btnText.style.display = 'block';
+        btnLoader.style.display = 'none';
+        btn.disabled = false;
     }
 }
 
-// Simulate API call (for demo purposes)
+// Simulate API call (pour la démo)
 async function simulateApiCall(endpoint, params = {}, apiKey = '') {
-    // In a real implementation, this would make an actual API call
-    // For now, we'll return mock data
+    const user = auth.currentUser;
 
-    // Check if API key is provided (for demo, we'll accept any non-empty string)
     if (apiKey && apiKey !== '') {
-        // In a real implementation, we would validate the API key
         const validation = await validateApiKey(apiKey);
         if (!validation.valid) {
             throw new Error(validation.error || 'Clé API invalide');
         }
+    } else if (!user) {
+        throw new Error('Vous devez être connecté ou fournir une clé API valide');
     }
 
-    // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Return mock data based on endpoint
     switch (endpoint) {
         case 'search':
             return {
@@ -412,9 +355,7 @@ async function simulateApiCall(endpoint, params = {}, apiKey = '') {
                 data: [
                     {
                         id: "26213",
-                        names: {
-                            fr: "Pomme crue"
-                        },
+                        names: { fr: "Pomme crue" },
                         nutrition: {
                             energy: { value: 52, unit: "kcal" },
                             carbohydrates: { value: 13.8, unit: "g" },
@@ -427,53 +368,22 @@ async function simulateApiCall(endpoint, params = {}, apiKey = '') {
                             subgroup_code: "401",
                             subgroup_name: "Fruits frais"
                         }
-                    },
-                    {
-                        id: "26214",
-                        names: {
-                            fr: "Pomme cuite"
-                        },
-                        nutrition: {
-                            energy: { value: 48, unit: "kcal" },
-                            carbohydrates: { value: 12.5, unit: "g" },
-                            fats: { value: 0.1, unit: "g" },
-                            proteins: { value: 0.2, unit: "g" }
-                        },
-                        categories: {
-                            group_code: "4",
-                            group_name: "Fruits et légumes",
-                            subgroup_code: "401",
-                            subgroup_name: "Fruits frais"
-                        }
                     }
                 ],
-                count: 2,
+                count: 1,
                 timestamp: new Date().toISOString()
             };
-
         case 'food':
             return {
                 success: true,
                 data: {
                     id: params.id || "26213",
-                    names: {
-                        fr: "Pomme crue"
-                    },
+                    names: { fr: "Pomme crue" },
                     nutrition: {
                         energy: { value: 52, unit: "kcal" },
                         carbohydrates: { value: 13.8, unit: "g" },
                         fats: { value: 0.2, unit: "g" },
-                        proteins: { value: 0.3, unit: "g" },
-                        fiber: { value: 2.4, unit: "g" },
-                        sugars: { value: 10.4, unit: "g" }
-                    },
-                    minerals: {
-                        calcium: { value: 6, unit: "mg" },
-                        iron: { value: 0.1, unit: "mg" },
-                        potassium: { value: 107, unit: "mg" }
-                    },
-                    vitamins: {
-                        vitaminC: { value: 4.6, unit: "mg" }
+                        proteins: { value: 0.3, unit: "g" }
                     },
                     categories: {
                         group_code: "4",
@@ -486,7 +396,6 @@ async function simulateApiCall(endpoint, params = {}, apiKey = '') {
                 },
                 timestamp: new Date().toISOString()
             };
-
         case 'categories':
             return {
                 success: true,
@@ -497,26 +406,7 @@ async function simulateApiCall(endpoint, params = {}, apiKey = '') {
                             name: "Entrées et plats composés",
                             subgroups: [
                                 { code: "101", name: "Salades composées et crudités" },
-                                { code: "102", name: "Soupes" },
-                                { code: "103", name: "Plats composés" }
-                            ]
-                        },
-                        {
-                            code: "2",
-                            name: "Viandes",
-                            subgroups: [
-                                { code: "201", name: "Viandes de boucherie" },
-                                { code: "202", name: "Viandes de volaille" },
-                                { code: "203", name: "Abats" }
-                            ]
-                        },
-                        {
-                            code: "3",
-                            name: "Poissons et produits de la mer",
-                            subgroups: [
-                                { code: "301", name: "Poissons" },
-                                { code: "302", name: "Crustacés" },
-                                { code: "303", name: "Mollusques" }
+                                { code: "102", name: "Soupes" }
                             ]
                         },
                         {
@@ -524,15 +414,13 @@ async function simulateApiCall(endpoint, params = {}, apiKey = '') {
                             name: "Fruits et légumes",
                             subgroups: [
                                 { code: "401", name: "Fruits frais" },
-                                { code: "402", name: "Légumes frais" },
-                                { code: "403", name: "Fruits et légumes transformés" }
+                                { code: "402", name: "Légumes frais" }
                             ]
                         }
                     ]
                 },
                 timestamp: new Date().toISOString()
             };
-
         case 'advanced':
             return {
                 success: true,
@@ -540,9 +428,7 @@ async function simulateApiCall(endpoint, params = {}, apiKey = '') {
                     {
                         id: "26213",
                         names: { fr: "Pomme crue" },
-                        nutrition: {
-                            energy: { value: 52, unit: "kcal" }
-                        },
+                        nutrition: { energy: { value: 52, unit: "kcal" } },
                         categories: {
                             group_name: "Fruits et légumes",
                             subgroup_name: "Fruits frais"
@@ -552,7 +438,6 @@ async function simulateApiCall(endpoint, params = {}, apiKey = '') {
                 count: 1,
                 timestamp: new Date().toISOString()
             };
-
         default:
             throw new Error('Endpoint non trouvé');
     }
@@ -562,15 +447,10 @@ async function simulateApiCall(endpoint, params = {}, apiKey = '') {
 function copyResult(elementId) {
     const element = document.getElementById(elementId);
     const codeElement = element.querySelector('code');
-
     if (codeElement) {
         navigator.clipboard.writeText(codeElement.textContent)
-            .then(() => {
-                showNotification('Résultat copié dans le presse-papiers !', 'success');
-            })
-            .catch(() => {
-                showNotification('Échec de la copie', 'error');
-            });
+            .then(() => showNotification('Résultat copié !', 'success'))
+            .catch(() => showNotification('Échec de la copie', 'error'));
     }
 }
 
@@ -578,7 +458,6 @@ function copyResult(elementId) {
 function clearResult(elementId) {
     const element = document.getElementById(elementId);
     const codeElement = element.querySelector('code');
-
     if (codeElement) {
         codeElement.textContent = '// Cliquez sur le bouton de test pour voir le résultat';
     }
@@ -589,106 +468,40 @@ async function pasteApiKey() {
     try {
         const text = await navigator.clipboard.readText();
         const input = document.getElementById('testApiKey');
-
-        // Simple validation - check if it looks like an API key
-        if (text && text.startsWith('wm-fd') && text.length === 10) {
-            if (input) {
-                input.value = text;
-                showNotification('Clé API collée !', 'success');
-            }
-        } else {
-            showNotification('Le texte dans le presse-papiers ne ressemble pas à une clé API valide', 'error');
+        if (input && text && text.startsWith('wm-fd') && text.length === 10) {
+            input.value = text;
+            showNotification('Clé API collée !', 'success');
+        } else if (input) {
+            showNotification('Le texte ne ressemble pas à une clé API valide', 'error');
         }
     } catch (error) {
-        console.error('Error reading clipboard:', error);
         showNotification('Impossible de lire le presse-papiers', 'error');
     }
 }
 
-// Show notification
+// Show notification (fallback si pas définie dans auth.js)
 function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `wm-notification wm-notification-${type}`;
-    notification.innerHTML = `
-        <span>${message}</span>
-        <button onclick="this.parentElement.remove()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-        </button>
-    `;
-
-    // Add styles if not already present
-    if (!document.getElementById('wm-notification-styles')) {
-        const style = document.createElement('style');
-        style.id = 'wm-notification-styles';
-        style.textContent = `
-            .wm-notification {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 12px 16px;
-                background: #1a1a1a;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 8px;
-                color: #fff;
-                font-size: 0.875rem;
-                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-                z-index: 5000;
-                transform: translateY(100px);
-                opacity: 0;
-                transition: all 0.3s ease;
-            }
-
-            .wm-notification-show {
-                transform: translateY(0);
-                opacity: 1;
-            }
-
-            .wm-notification button {
-                margin-left: auto;
-                background: none;
-                border: none;
-                color: inherit;
-                cursor: pointer;
-                padding: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .wm-notification-success {
-                border-color: #4ade80;
-                background: rgba(74, 222, 128, 0.1);
-            }
-
-            .wm-notification-error {
-                border-color: #f87171;
-                background: rgba(248, 113, 113, 0.1);
-            }
-
-            .wm-notification-info {
-                border-color: #4d8fff;
-                background: rgba(77, 143, 255, 0.1);
-            }
+    if (window.showNotification) {
+        window.showNotification(message, type);
+    } else {
+        const notification = document.createElement('div');
+        notification.className = `wm-notification wm-notification-${type}`;
+        notification.innerHTML = `
+            <span>${message}</span>
+            <button onclick="this.parentElement.remove()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
         `;
-        document.head.appendChild(style);
+        document.body.appendChild(notification);
+        setTimeout(() => notification.classList.add('wm-notification-show'), 100);
+        setTimeout(() => {
+            notification.classList.remove('wm-notification-show');
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
     }
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.classList.add('wm-notification-show');
-    }, 100);
-
-    setTimeout(() => {
-        notification.classList.remove('wm-notification-show');
-        setTimeout(() => notification.remove(), 300);
-    }, 5000);
 }
 
 // Initialize the app when DOM is loaded

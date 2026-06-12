@@ -9,7 +9,7 @@ const authForms = document.querySelectorAll('.wm-auth-form');
 const userBtn = document.getElementById('userBtn');
 const userDropdown = document.getElementById('userDropdown');
 const userAvatar = document.getElementById('userAvatar');
-const userName = document.getElementById('userName');
+const userNameElement = document.getElementById('userName');
 const authLink = document.getElementById('authLink');
 const userMenu = document.getElementById('userMenu');
 
@@ -22,12 +22,8 @@ function initAuth() {
     authTabs.forEach(tab => {
         tab.addEventListener('click', () => {
             const targetForm = tab.getAttribute('data-tab');
-
-            // Update active tab
             authTabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-
-            // Update active form
             authForms.forEach(f => f.classList.remove('active'));
             document.querySelector(`[data-form="${targetForm}"]`).classList.add('active');
         });
@@ -43,22 +39,45 @@ function initAuth() {
         registerForm.addEventListener('submit', handleRegister);
     }
 
-    // Auth state listener
+    // Auth state listener - GESTION AMÉLIORÉE
     onAuthStateChanged(auth, (user) => {
         currentUser = user;
         updateAuthUI(user);
 
-        // Save user to database if new
-        if (user && !user.emailVerified) {
+        // Rediriger vers auth.html si pas connecté ET sur une page protégée
+        const currentPage = window.location.pathname.split('/').pop();
+        if (!user && (currentPage === 'dashboard.html' || currentPage === 'test-api.html')) {
+            window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.pathname);
+        }
+
+        // Sauvegarder l'utilisateur dans la base de données
+        if (user) {
             saveUserToDatabase(user);
+            // Rafraîchir les clés API si sur dashboard
+            if (currentPage === 'dashboard.html' && window.refreshApiKeys) {
+                setTimeout(window.refreshApiKeys, 500);
+            }
         }
     });
 
     // User dropdown toggle
     if (userBtn && userDropdown) {
-        userBtn.addEventListener('click', () => {
+        userBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             userDropdown.classList.toggle('open');
         });
+
+        // Fermer le dropdown si on clique ailleurs
+        document.addEventListener('click', () => {
+            if (userDropdown) userDropdown.classList.remove('open');
+        });
+    }
+
+    // Gérer la redirection après connexion (pour les liens avec ?redirect=)
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirect = urlParams.get('redirect');
+    if (redirect && currentUser) {
+        window.location.href = redirect;
     }
 }
 
@@ -75,7 +94,6 @@ async function handleLogin(e) {
         return;
     }
 
-    // Show loading
     loginBtn.querySelector('.wm-btn-text').style.display = 'none';
     loginBtn.querySelector('.wm-btn-loader').style.display = 'block';
     loginBtn.disabled = true;
@@ -86,25 +104,14 @@ async function handleLogin(e) {
     } catch (error) {
         console.error('Login error:', error);
         let errorMessage = 'Erreur de connexion';
-
         switch (error.code) {
-            case 'auth/user-not-found':
-                errorMessage = 'Utilisateur non trouvé';
-                break;
-            case 'auth/wrong-password':
-                errorMessage = 'Mot de passe incorrect';
-                break;
-            case 'auth/invalid-email':
-                errorMessage = 'Adresse e-mail invalide';
-                break;
-            case 'auth/user-disabled':
-                errorMessage = 'Compte désactivé';
-                break;
+            case 'auth/user-not-found': errorMessage = 'Utilisateur non trouvé'; break;
+            case 'auth/wrong-password': errorMessage = 'Mot de passe incorrect'; break;
+            case 'auth/invalid-email': errorMessage = 'Adresse e-mail invalide'; break;
+            case 'auth/user-disabled': errorMessage = 'Compte désactivé'; break;
         }
-
         showNotification(errorMessage, 'error');
     } finally {
-        // Hide loading
         loginBtn.querySelector('.wm-btn-text').style.display = 'block';
         loginBtn.querySelector('.wm-btn-loader').style.display = 'none';
         loginBtn.disabled = false;
@@ -122,7 +129,6 @@ async function handleRegister(e) {
     const terms = document.getElementById('registerTerms').checked;
     const registerBtn = document.getElementById('registerBtn');
 
-    // Validation
     if (!name || !email || !password || !confirmPassword) {
         showNotification('Veuillez remplir tous les champs', 'error');
         return;
@@ -143,7 +149,6 @@ async function handleRegister(e) {
         return;
     }
 
-    // Show loading
     registerBtn.querySelector('.wm-btn-text').style.display = 'none';
     registerBtn.querySelector('.wm-btn-loader').style.display = 'block';
     registerBtn.disabled = true;
@@ -151,33 +156,18 @@ async function handleRegister(e) {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-
-        // Update user profile with name
-        await updateUserProfile(user, { displayName: name });
-
-        // Save user to database
         await saveUserToDatabase(user, { name });
-
         showNotification('Inscription réussie ! Vous êtes maintenant connecté.', 'success');
     } catch (error) {
         console.error('Registration error:', error);
         let errorMessage = 'Erreur d\'inscription';
-
         switch (error.code) {
-            case 'auth/email-already-in-use':
-                errorMessage = 'Cette adresse e-mail est déjà utilisée';
-                break;
-            case 'auth/invalid-email':
-                errorMessage = 'Adresse e-mail invalide';
-                break;
-            case 'auth/weak-password':
-                errorMessage = 'Mot de passe trop faible';
-                break;
+            case 'auth/email-already-in-use': errorMessage = 'Cette adresse e-mail est déjà utilisée'; break;
+            case 'auth/invalid-email': errorMessage = 'Adresse e-mail invalide'; break;
+            case 'auth/weak-password': errorMessage = 'Mot de passe trop faible'; break;
         }
-
         showNotification(errorMessage, 'error');
     } finally {
-        // Hide loading
         registerBtn.querySelector('.wm-btn-text').style.display = 'block';
         registerBtn.querySelector('.wm-btn-loader').style.display = 'none';
         registerBtn.disabled = false;
@@ -191,7 +181,9 @@ async function signInWithGoogle() {
         showNotification('Connexion avec Google réussie !', 'success');
     } catch (error) {
         console.error('Google sign-in error:', error);
-        showNotification('Erreur de connexion avec Google', 'error');
+        if (error.code !== 'auth/popup-closed-by-user') {
+            showNotification('Erreur de connexion avec Google', 'error');
+        }
     }
 }
 
@@ -206,17 +198,9 @@ async function signOutUser() {
     }
 }
 
-// Update user profile
-async function updateUserProfile(user, profileData) {
-    // In a real app, you would use updateProfile from firebase/auth
-    // For now, we'll just save to our database
-    return true;
-}
-
 // Save user to database
 async function saveUserToDatabase(user, additionalData = {}) {
     const userRef = ref(database, `users/${user.uid}`);
-
     const userData = {
         uid: user.uid,
         email: user.email,
@@ -238,24 +222,24 @@ async function saveUserToDatabase(user, additionalData = {}) {
 
 // Update auth UI
 function updateAuthUI(user) {
-    if (user) {
-        // User is logged in
-        if (authLink) authLink.style.display = 'none';
-        if (userMenu) userMenu.style.display = 'flex';
+    const authRequiredElements = document.querySelectorAll('[data-auth-required]');
+    const guestOnlyElements = document.querySelectorAll('[data-guest-only]');
 
-        // Update user info
+    if (user) {
+        authRequiredElements.forEach(el => el.style.display = '');
+        guestOnlyElements.forEach(el => el.style.display = 'none');
+
         if (userAvatar) {
             const initials = (user.displayName || user.email || '').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
             userAvatar.textContent = initials || 'U';
         }
 
-        if (userName) {
-            userName.textContent = user.displayName || user.email || 'Utilisateur';
+        if (userNameElement) {
+            userNameElement.textContent = user.displayName || user.email || 'Utilisateur';
         }
     } else {
-        // User is not logged in
-        if (authLink) authLink.style.display = 'block';
-        if (userMenu) userMenu.style.display = 'none';
+        authRequiredElements.forEach(el => el.style.display = 'none');
+        guestOnlyElements.forEach(el => el.style.display = '');
     }
 }
 
@@ -273,12 +257,27 @@ function showNotification(message, type = 'info') {
         </button>
     `;
 
+    if (!document.getElementById('wm-notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'wm-notification-styles';
+        style.textContent = `
+            .wm-notification {
+                position: fixed; bottom: 20px; right: 20px; display: flex; align-items: center; gap: 10px;
+                padding: 12px 16px; background: #1a1a1a; border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px; color: #fff; font-size: 0.875rem; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+                z-index: 5000; transform: translateY(100px); opacity: 0; transition: all 0.3s ease;
+            }
+            .wm-notification-show { transform: translateY(0); opacity: 1; }
+            .wm-notification button { margin-left: auto; background: none; border: none; color: inherit; cursor: pointer; padding: 0; }
+            .wm-notification-success { border-color: #4ade80; background: rgba(74, 222, 128, 0.1); }
+            .wm-notification-error { border-color: #f87171; background: rgba(248, 113, 113, 0.1); }
+            .wm-notification-info { border-color: #4d8fff; background: rgba(77, 143, 255, 0.1); }
+        `;
+        document.head.appendChild(style);
+    }
+
     document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.classList.add('wm-notification-show');
-    }, 100);
-
+    setTimeout(() => notification.classList.add('wm-notification-show'), 100);
     setTimeout(() => {
         notification.classList.remove('wm-notification-show');
         setTimeout(() => notification.remove(), 300);

@@ -6,6 +6,15 @@
     <title>Tableau de bord | Wikimind Food API</title>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
+    <script type="module">
+        // Vérifier la connexion avant d'afficher la page
+        import { auth, onAuthStateChanged } from './assets/js/firebase-config.js';
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'auth.html?redirect=dashboard.html';
+            }
+        });
+    </script>
 </head>
 <body>
     <div id="app">
@@ -203,9 +212,7 @@
 
                 <div class="wm-api-key-display">
                     <div class="wm-api-key-label">Votre clé API</div>
-                    <div class="wm-api-key-value" id="generatedApiKey">
-                        wm-fd12345678
-                    </div>
+                    <div class="wm-api-key-value" id="generatedApiKey">wm-fd12345678</div>
                     <button class="wm-btn wm-btn-small" onclick="copyApiKey()">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>

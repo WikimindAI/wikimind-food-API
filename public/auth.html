@@ -159,5 +159,22 @@
     <script type="module" src="assets/js/firebase-config.js"></script>
     <script type="module" src="assets/js/auth.js"></script>
     <script type="module" src="assets/js/app.js"></script>
+    <script>   // Dans auth.js, modifier onAuthStateChanged
+onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    updateAuthUI(user);
+
+    // Rediriger vers la page demandée après connexion
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirect = urlParams.get('redirect');
+    if (user && redirect) {
+        window.location.href = redirect;
+    }
+
+    if (user) {
+        saveUserToDatabase(user);
+    }
+});
+    </script>
 </body>
 </html>

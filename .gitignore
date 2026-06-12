@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Firebase
+firebase-debug.log
+firebase.json
+.firebaserc
+database.rules.json
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+public/.DS_Store
+public/Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tester l'API | Wikimind Food API</title>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div id="app">
+        <header class="wm-header">
+            <div class="wm-container">
+                <div class="wm-logo">WIKIMIND <span class="wm-logo-sub">FOOD API</span></div>
+                <nav class="wm-nav">
+                    <a href="index.html" class="wm-nav-item">Accueil</a>
+                    <a href="docs.html" class="wm-nav-item">Documentation</a>
+                    <a href="test-api.html" class="wm-nav-item active">Tester l'API</a>
+                    <a href="auth.html" class="wm-nav-item" id="authLink">Se connecter</a>
+                    <div class="wm-user-menu" id="userMenu" style="display: none;">
+                        <button class="wm-user-btn" id="userBtn">
+                            <span class="wm-user-avatar" id="userAvatar">JD</span>
+                            <span class="wm-user-name" id="userName">Jean Dupont</span>
+                        </button>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <main class="wm-test-page">
+            <div class="wm-container">
+                <div class="wm-page-header">
+                    <h1>Tester l'API Wikimind Food</h1>
+                    <p>Testez les endpoints de l'API directement depuis votre navigateur.</p>
+                </div>
+
+                <div class="wm-test-grid">
+                    <!-- Test Section 1: Search Food -->
+                    <div class="wm-test-card">
+                        <div class="wm-test-header">
+                            <h3>🔍 Rechercher un aliment</h3>
+                            <p class="wm-test-description">Recherchez des aliments par nom ou identifiant CIQUAL.</p>
+                        </div>
+
+                        <div class="wm-test-form">
+                            <div class="wm-form-group">
+                                <label for="searchQuery">Requête de recherche</label>
+                                <input type="text" id="searchQuery" class="wm-input" placeholder="pomme, 26213, etc." value="pomme">
+                            </div>
+
+                            <div class="wm-form-group">
+                                <label for="searchLimit">Limite de résultats</label>
+                                <input type="number" id="searchLimit" class="wm-input" placeholder="10" value="5" min="1" max="50">
+                            </div>
+
+                            <div class="wm-form-group">
+                                <label for="testApiKey">Votre clé API (optionnelle pour le test)</label>
+                                <div class="wm-input-wrapper">
+                                    <input type="text" id="testApiKey" class="wm-input" placeholder="wm-fd12345678">
+                                    <button type="button" class="wm-input-icon" onclick="pasteApiKey()" title="Coller depuis le presse-papiers">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button class="wm-btn wm-btn-primary" onclick="testSearchFood()">
+                                <span class="wm-btn-text">Tester la recherche</span>
+                                <span class="wm-btn-loader" style="display: none;"></span>
+                            </button>
+                        </div>
+
+                        <div class="wm-test-result" id="searchResult">
+                            <div class="wm-result-header">
+                                <h4>Résultat</h4>
+                                <div class="wm-result-actions">
+                                    <button class="wm-btn-icon" onclick="copyResult('searchResult')" title="Copier le résultat">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                        </svg>
+                                    </button>
+                                    <button class="wm-btn-icon" onclick="clearResult('searchResult')" title="Effacer">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 6h18"/>
+                                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <pre><code id="searchResultCode" class="language-json">// Cliquez sur "Tester la recherche" pour voir le résultat</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Test Section 2: Get Food by ID -->
+                    <div class="wm-test-card">
+                        <div class="wm-test-header">
+                            <h3>📋 Obtenir un aliment par ID</h3>
+                            <p class="wm-test-description">Récupérez les détails complets d'un aliment spécifique.</p>
+                        </div>
+
+                        <div class="wm-test-form">
+                            <div class="wm-form-group">
+                                <label for="foodId">ID CIQUAL</label>
+                                <input type="text" id="foodId" class="wm-input" placeholder="26213" value="26213">
+                            </div>
+
+                            <button class="wm-btn wm-btn-primary" onclick="testGetFoodById()">
+                                <span class="wm-btn-text">Obtenir l'aliment</span>
+                                <span class="wm-btn-loader" style="display: none;"></span>
+                            </button>
+                        </div>
+
+                        <div class="wm-test-result" id="foodByIdResult">
+                            <div class="wm-result-header">
+                                <h4>Résultat</h4>
+                                <div class="wm-result-actions">
+                                    <button class="wm-btn-icon" onclick="copyResult('foodByIdResult')" title="Copier">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                        </svg>
+                                    </button>
+                                    <button class="wm-btn-icon" onclick="clearResult('foodByIdResult')" title="Effacer">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 6h18"/>
+                                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <pre><code id="foodByIdResultCode" class="language-json">// Cliquez sur "Obtenir l'aliment" pour voir le résultat</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Test Section 3: Get Categories -->
+                    <div class="wm-test-card">
+                        <div class="wm-test-header">
+                            <h3>📁 Lister les catégories</h3>
+                            <p class="wm-test-description">Récupérez la liste complète des groupes et sous-groupes d'aliments.</p>
+                        </div>
+
+                        <div class="wm-test-form">
+                            <button class="wm-btn wm-btn-primary" onclick="testGetCategories()">
+                                <span class="wm-btn-text">Obtenir les catégories</span>
+                                <span class="wm-btn-loader" style="display: none;"></span>
+                            </button>
+                        </div>
+
+                        <div class="wm-test-result" id="categoriesResult">
+                            <div class="wm-result-header">
+                                <h4>Résultat</h4>
+                                <div class="wm-result-actions">
+                                    <button class="wm-btn-icon" onclick="copyResult('categoriesResult')" title="Copier">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                        </svg>
+                                    </button>
+                                    <button class="wm-btn-icon" onclick="clearResult('categoriesResult')" title="Effacer">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 6h18"/>
+                                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <pre><code id="categoriesResultCode" class="language-json">// Cliquez sur "Obtenir les catégories" pour voir le résultat</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Test Section 4: Advanced Query -->
+                    <div class="wm-test-card">
+                        <div class="wm-test-header">
+                            <h3>🔬 Requête avancée</h3>
+                            <p class="wm-test-description">Filtrez les aliments par catégorie, nutriments, etc.</p>
+                        </div>
+
+                        <div class="wm-test-form">
+                            <div class="wm-form-row">
+                                <div class="wm-form-group">
+                                    <label for="advGroup">Groupe</label>
+                                    <select id="advGroup" class="wm-input wm-select">
+                                        <option value="">Tous les groupes</option>
+                                        <option value="1">Entrées et plats composés</option>
+                                        <option value="2">Viandes</option>
+                                        <option value="3">Poissons</option>
+                                    </select>
+                                </div>
+                                <div class="wm-form-group">
+                                    <label for="advSubgroup">Sous-groupe</label>
+                                    <select id="advSubgroup" class="wm-input wm-select" disabled>
+                                        <option value="">Tous les sous-groupes</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="wm-form-row">
+                                <div class="wm-form-group">
+                                    <label for="advMinEnergy">Énergie min (kcal)</label>
+                                    <input type="number" id="advMinEnergy" class="wm-input" placeholder="0" min="0">
+                                </div>
+                                <div class="wm-form-group">
+                                    <label for="advMaxEnergy">Énergie max (kcal)</label>
+                                    <input type="number" id="advMaxEnergy" class="wm-input" placeholder="1000" min="0">
+                                </div>
+                            </div>
+
+                            <div class="wm-form-group">
+                                <label for="advLimit">Limite de résultats</label>
+                                <input type="number" id="advLimit" class="wm-input" placeholder="10" value="10" min="1" max="50">
+                            </div>
+
+                            <button class="wm-btn wm-btn-primary" onclick="testAdvancedQuery()">
+                                <span class="wm-btn-text">Exécuter la requête</span>
+                                <span class="wm-btn-loader" style="display: none;"></span>
+                            </button>
+                        </div>
+
+                        <div class="wm-test-result" id="advancedResult">
+                            <div class="wm-result-header">
+                                <h4>Résultat</h4>
+                                <div class="wm-result-actions">
+                                    <button class="wm-btn-icon" onclick="copyResult('advancedResult')" title="Copier">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                        </svg>
+                                    </button>
+                                    <button class="wm-btn-icon" onclick="clearResult('advancedResult')" title="Effacer">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 6h18"/>
+                                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <pre><code id="advancedResultCode" class="language-json">// Cliquez sur "Exécuter la requête" pour voir le résultat</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Endpoint Info -->
+                <div class="wm-api-info-section">
+                    <div class="wm-api-info-card">
+                        <h3>📡 Endpoints API</h3>
+                        <p>Voici les endpoints disponibles pour l'API Wikimind Food :</p>
+
+                        <div class="wm-endpoints-list">
+                            <div class="wm-endpoint-item">
+                                <div class="wm-endpoint-method">GET</div>
+                                <div class="wm-endpoint-path">/api/food/search</div>
+                                <div class="wm-endpoint-desc">Rechercher des aliments</div>
+                            </div>
+                            <div class="wm-endpoint-item">
+                                <div class="wm-endpoint-method">GET</div>
+                                <div class="wm-endpoint-path">/api/food/{id}</div>
+                                <div class="wm-endpoint-desc">Obtenir un aliment par ID</div>
+                            </div>
+                            <div class="wm-endpoint-item">
+                                <div class="wm-endpoint-method">GET</div>
+                                <div class="wm-endpoint-path">/api/categories</div>
+                                <div class="wm-endpoint-desc">Lister les catégories</div>
+                            </div>
+                            <div class="wm-endpoint-item">
+                                <div class="wm-endpoint-method">GET</div>
+                                <div class="wm-endpoint-path">/api/food/advanced</div>
+                                <div class="wm-endpoint-desc">Requête avancée</div>
+                            </div>
+                        </div>
+
+                        <div class="wm-api-headers">
+                            <h4>Headers requis</h4>
+                            <div class="wm-code-block">
+                                <pre><code class="language-http">X-API-KEY: wm-fdXXXXXXXX</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="assets/js/firebase-config.js"></script>
+    <script type="module" src="assets/js/auth.js"></script>
+    <script type="module" src="assets/js/api-manager.js"></script>
+    <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>

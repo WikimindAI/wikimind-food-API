@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation | Wikimind Food API</title>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div id="app">
+        <header class="wm-header">
+            <div class="wm-container">
+                <div class="wm-logo">WIKIMIND <span class="wm-logo-sub">FOOD API</span></div>
+                <nav class="wm-nav">
+                    <a href="index.html" class="wm-nav-item">Accueil</a>
+                    <a href="docs.html" class="wm-nav-item active">Documentation</a>
+                    <a href="test-api.html" class="wm-nav-item">Tester l'API</a>
+                    <a href="auth.html" class="wm-nav-item">Se connecter</a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="wm-docs-page">
+            <div class="wm-container">
+                <div class="wm-docs-layout">
+                    <!-- Sidebar -->
+                    <aside class="wm-docs-sidebar">
+                        <div class="wm-docs-nav">
+                            <h4>Documentation</h4>
+                            <nav>
+                                <a href="#introduction" class="wm-docs-link active">Introduction</a>
+                                <a href="#authentication" class="wm-docs-link">Authentification</a>
+                                <a href="#endpoints" class="wm-docs-link">Endpoints</a>
+                                <a href="#examples" class="wm-docs-link">Exemples de code</a>
+                                <a href="#limits" class="wm-docs-link">Limites et quotas</a>
+                                <a href="#errors" class="wm-docs-link">Gestion des erreurs</a>
+                                <a href="#changelog" class="wm-docs-link">Changelog</a>
+                            </nav>
+                        </div>
+                    </aside>
+
+                    <!-- Main Content -->
+                    <div class="wm-docs-content">
+                        <article>
+                            <!-- Introduction -->
+                            <section id="introduction" class="wm-docs-section">
+                                <h1>📖 Wikimind Food API - Documentation</h1>
+                                <p class="wm-docs-lead">L'API Wikimind Food vous donne accès à une base de données complète de plus de 2000 aliments avec leurs informations nutritionnelles, provenants de la base CIQUAL 2025.</p>
+
+                                <div class="wm-docs-meta">
+                                    <div class="wm-badge">Version 1.0.0</div>
+                                    <div class="wm-badge wm-badge-success">Disponible</div>
+                                    <div class="wm-badge">Dernière mise à jour: 12 juin 2026</div>
+                                </div>
+
+                                <h2>🎯 Fonctionnalités</h2>
+                                <ul class="wm-docs-list">
+                                    <li>Recherche d'aliments par nom ou identifiant CIQUAL</li>
+                                    <li>Récupération des informations nutritionnelles complètes</li>
+                                    <li>Filtrage par catégories et sous-catégories</li>
+                                    <li>Requêtes avancées avec filtres personnalisés</li>
+                                    <li>Authentification sécurisée via clés API</li>
+                                    <li>Gestion des clés API avec expiration automatique</li>
+                                </ul>
+
+                                <h2>📋 Prérequis</h2>
+                                <p>Pour utiliser l'API Wikimind Food, vous avez besoin de :</p>
+                                <ol class="wm-docs-list">
+                                    <li>Un compte Wikimind (gratuit)</li>
+                                    <li>Une clé API valide (générée depuis votre tableau de bord)</li>
+                                </ol>
+                            </section>
+
+                            <!-- Authentication -->
+                            <section id="authentication" class="wm-docs-section">
+                                <h2>🔐 Authentification</h2>
+                                <p>Toutes les requêtes à l'API doivent inclure votre clé API dans les headers HTTP.</p>
+
+                                <div class="wm-code-block">
+                                    <div class="wm-code-header">
+                                        <span class="wm-code-dot red"></span>
+                                        <span class="wm-code-dot yellow"></span>
+                                        <span class="wm-code-dot green"></span>
+                                        <span class="wm-code-title">Headers requis</span>
+                                    </div>
+                                    <pre><code class="language-http">X-API-KEY: wm-fdXXXXXXXX</code></pre>
+                                </div>
+
+                                <h3>Obtenir une clé API</h3>
+                                <ol class="wm-docs-list">
+                                    <li>Connectez-vous à votre <a href="auth.html">compte Wikimind</a></li>
+                                    <li>Allez dans le <a href="dashboard.html">tableau de bord</a></li>
+                                    <li>Cliquez sur "Créer une nouvelle clé API"</li>
+                                    <li>Donnez un nom à votre clé et sélectionnez une date d'expiration</li>
+                                    <li>Passez le test anti-bot</li>
+                                    <li>Copiez votre clé API (elle ne sera plus affichée après)</li>
+                                </ol>
+
+                                <div class="wm-warning-box">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                        <line x1="12" y1="9" x2="12" y2="13"/>
+                                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                    </svg>
+                                    <p><strong>Important:</strong> Ne partagez jamais votre clé API. Elle donne un accès complet à votre compte.</p>
+                                </div>
+
+                                <h3>Format de la clé API</h3>
+                                <p>Les clés API Wikimind Food suivent ce format :</p>
+                                <div class="wm-code-block">
+                                    <pre><code class="language-text">wm-fdXXXXXXXX</code></pre>
+                                </div>
+                                <ul class="wm-docs-list">
+                                    <li><code>wm</code> : Préfixe pour Wikimind</li>
+                                    <li><code>fd</code> : Suffix pour Food API</li>
+                                    <li><code>XXXXXXXX</code> : 8 chiffres aléatoires</li>
+                                </ul>
+                            </section>
+
+                            <!-- Endpoints -->
+                            <section id="endpoints" class="wm-docs-section">
+                                <h2>📡 Endpoints API</h2>
+                                <p>Tous les endpoints sont accessibles via <code>https://wikimind-food-api.web.app/api</code></p>
+
+                                <div class="wm-endpoints-table">
+                                    <div class="wm-endpoint-detail">
+                                        <div class="wm-endpoint-method">GET</div>
+                                        <div class="wm-endpoint-path">/api/food/search</div>
+                                        <div class="wm-endpoint-desc">Rechercher des aliments</div>
+                                    </div>
+                                    <div class="wm-endpoint-details">
+                                        <h4>Paramètres</h4>
+                                        <table class="wm-table wm-table-compact">
+                                            <thead>
+                                                <tr>
+                                                    <th>Paramètre</th>
+                                                    <th>Type</th>
+                                                    <th>Requis</th>
+                                                    <th>Description</th>
+                                                    <th>Exemple</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>query</td>
+                                                    <td>string</td>
+                                                    <td>Oui</td>
+                                                    <td>Terme de recherche (nom ou ID)</td>
+                                                    <td>pomme</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>limit</td>
+                                                    <td>number</td>
+                                                    <td>Non</td>
+                                                    <td>Nombre de résultats (1-50)</td>
+                                                    <td>10</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>language</td>
+                                                    <td>string</td>
+                                                    <td>Non</td>
+                                                    <td>Langue des résultats</td>
+                                                    <td>fr</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <h4>Exemple de requête</h4>
+                                        <div class="wm-code-block">
+                                            <div class="wm-code-header">
+                                                <span class="wm-code-dot red"></span>
+                                                <span class="wm-code-dot yellow"></span>
+                                                <span class="wm-code-dot green"></span>
+                                                <span class="wm-code-title">cURL</span>
+                                            </div>
+                                            <pre><code class="language-bash">curl -X GET "https://wikimind-food-api.web.app/api/food/search?query=pomme&limit=5" \
+  -H "X-API-KEY: wm-fd12345678"</code></pre>
+                                        </div>
+
+                                        <h4>Exemple de réponse</h4>
+                                        <div class="wm-code-block">
+                                            <div class="wm-code-header">
+                                                <span class="wm-code-dot red"></span>
+                                                <span class="wm-code-dot yellow"></span>
+                                                <span class="wm-code-dot green"></span>
+                                                <span class="wm-code-title">JSON</span>
+                                            </div>
+                                            <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "26213",
+      "names": {
+        "fr": "Pomme crue"
+      },
+      "nutrition": {
+        "energy": { "value": 52, "unit": "kcal" },
+        "carbohydrates": { "value": 13.8, "unit": "g" },
+        "fats": { "value": 0.2, "unit": "g" },
+        "proteins": { "value": 0.3, "unit": "g" }
+      },
+      "categories": {
+        "group_code": "4",
+        "group_name": "Fruits et légumes",
+        "subgroup_code": "401",
+        "subgroup_name": "Fruits frais"
+      }
+    }
+  ],
+  "count": 1,
+  "timestamp": "2026-06-12T10:00:00Z"
+}</code></pre>
+                                        </div>
+                                    </div>
+
+                                    <div class="wm-endpoint-detail">
+                                        <div class="wm-endpoint-method">GET</div>
+                                        <div class="wm-endpoint-path">/api/food/{id}</div>
+                                        <div class="wm-endpoint-desc">Obtenir un aliment par ID</div>
+                                    </div>
+                                    <div class="wm-endpoint-details">
+                                        <h4>Paramètres</h4>
+                                        <table class="wm-table wm-table-compact">
+                                            <thead>
+                                                <tr>
+                                                    <th>Paramètre</th>
+                                                    <th>Type</th>
+                                                    <th>Requis</th>
+                                                    <th>Description</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>id</td>
+                                                    <td>string</td>
+                                                    <td>Oui</td>
+                                                    <td>ID CIQUAL de l'aliment</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <h4>Exemple de requête</h4>
+                                        <div class="wm-code-block">
+                                            <div class="wm-code-header">
+                                                <span class="wm-code-dot red"></span>
+                                                <span class="wm-code-dot yellow"></span>
+                                                <span class="wm-code-dot green"></span>
+                                                <span class="wm-code-title">cURL</span>
+                                            </div>
+                                            <pre><code class="language-bash">curl -X GET "https://wikimind-food-api.web.app/api/food/26213" \
+  -H "X-API-KEY: wm-fd12345678"</code></pre>
+                                        </div>
+                                    </div>
+
+                                    <div class="wm-endpoint-detail">
+                                        <div class="wm-endpoint-method">GET</div>
+                                        <div class="wm-endpoint-path">/api/categories</div>
+                                        <div class="wm-endpoint-desc">Lister les catégories</div>
+                                    </div>
+                                    <div class="wm-endpoint-details">
+                                        <h4>Paramètres</h4>
+                                        <p>Aucun paramètre requis.</p>
+
+                                        <h4>Exemple de réponse</h4>
+                                        <div class="wm-code-block">
+                                            <div class="wm-code-header">
+                                                <span class="wm-code-dot red"></span>
+                                                <span class="wm-code-dot yellow"></span>
+                                                <span class="wm-code-dot green"></span>
+                                                <span class="wm-code-title">JSON</span>
+                                            </div>
+                                            <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "groups": [
+      {
+        "code": "1",
+        "name": "Entrées et plats composés",
+        "subgroups": [
+          {
+            "code": "101",
+            "name": "Salades composées et crudités"
+          },
+          {
+            "code": "102",
+            "name": "Soupes"
+          }
+        ]
+      },
+      {
+        "code": "4",
+        "name": "Fruits et légumes",
+        "subgroups": [
+          {
+            "code": "401",
+            "name": "Fruits frais"
+          }
+        ]
+      }
+    ]
+  },
+  "timestamp": "2026-06-12T10:00:00Z"
+}</code></pre>
+                                        </div>
+                                    </div>
+
+                                    <div class="wm-endpoint-detail">
+                                        <div class="wm-endpoint-method">GET</div>
+                                        <div class="wm-endpoint-path">/api/food/advanced</div>
+                                        <div class="wm-endpoint-desc">Requête avancée</div>
+                                    </div>
+                                    <div class="wm-endpoint-details">
+                                        <h4>Paramètres</h4>
+                                        <table class="wm-table wm-table-compact">
+                                            <thead>
+                                                <tr>
+                                                    <th>Paramètre</th>
+                                                    <th>Type</th>
+                                                    <th>Requis</th>
+                                                    <th>Description</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>group</td>
+                                                    <td>string</td>
+                                                    <td>Non</td>
+                                                    <td>Code du groupe</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>subgroup</td>
+                                                    <td>string</td>
+                                                    <td>Non</td>
+                                                    <td>Code du sous-groupe</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>minEnergy</td>
+                                                    <td>number</td>
+                                                    <td>Non</td>
+                                                    <td>Énergie minimale (kcal)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>maxEnergy</td>
+                                                    <td>number</td>
+                                                    <td>Non</td>
+                                                    <td>Énergie maximale (kcal)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>limit</td>
+                                                    <td>number</td>
+                                                    <td>Non</td>
+                                                    <td>Nombre de résultats (1-50)</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <h4>Exemple de requête</h4>
+                                        <div class="wm-code-block">
+                                            <div class="wm-code-header">
+                                                <span class="wm-code-dot red"></span>
+                                                <span class="wm-code-dot yellow"></span>
+                                                <span class="wm-code-dot green"></span>
+                                                <span class="wm-code-title">cURL</span>
+                                            </div>
+                                            <pre><code class="language-bash">curl -X GET "https://wikimind-food-api.web.app/api/food/advanced?group=4&minEnergy=50&limit=10" \
+  -H "X-API-KEY: wm-fd12345678"</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- Examples -->
+                            <section id="examples" class="wm-docs-section">
+                                <h2>💻 Exemples de code</h2>
+
+                                <div class="wm-examples-grid">
+                                    <div class="wm-example-card">
+                                        <h3>JavaScript (Fetch API)</h3>
+                                        <div class="wm-code-block">
+                                            <div class="wm-code-header">
+                                                <span class="wm-code-dot red"></span>
+                                                <span class="wm-code-dot yellow"></span>
+                                                <span class="wm-code-dot green"></span>
+                                                <span class="wm-code-title">JavaScript</span>
+                                            </div>
+                                            <pre><code class="language-javascript">const API_KEY = 'wm-fd12345678';
+const BASE_URL = 'https://wikimind-food-api.web.app/api';
+
+// Rechercher des aliments
+async function searchFood(query) {
+  const response = await fetch(`${BASE_URL}/food/search?query=${query}`, {
+    headers: {
+      'X-API-KEY': API_KEY
+    }
+  });
+  return await response.json();
+}
+
+// Obtenir un aliment par ID
+async function getFoodById(id) {
+  const response = await fetch(`${BASE_URL}/food/${id}`, {
+    headers: {
+      'X-API-KEY': API_KEY
+    }
+  });
+  return await response.json();
+}
+
+// Exemple d'utilisation
+searchFood('pomme')
+  .then(data => console.log(data))
+  .catch(error => console.error(error));</code></pre>
+                                        </div>
+                                    </div>
+
+                                    <div class="wm-example-card">
+                                        <h3>Python (requests)</h3>
+                                        <div class="wm-code-block">
+                                            <div class="wm-code-header">
+                                                <span class="wm-code-dot red"></span>
+                                                <span class="wm-code-dot yellow"></span>
+                                                <span class="wm-code-dot green"></span>
+                                                <span class="wm-code-title">Python</span>
+                                            </div>
+                                            <pre><code class="language-python">import requests
+
+API_KEY = 'wm-fd12345678'
+BASE_URL = 'https://wikimind-food-api.web.app/api'
+
+def search_food(query):
+    headers = {'X-API-KEY': API_KEY}
+    response = requests.get(f'{BASE_URL}/food/search', params={'query': query}, headers=headers)
+    return response.json()
+
+def get_food_by_id(food_id):
+    headers = {'X-API-KEY': API_KEY}
+    response = requests.get(f'{BASE_URL}/food/{food_id}', headers=headers)
+    return response.json()
+
+# Exemple d'utilisation
+result = search_food('pomme')
+print(result)</code></pre>
+                                        </div>
+
+                                    <div class="wm-example-card">
+                                        <h3>PHP (cURL)</h3>
+                                        <div class="wm-code-block">
+                                            <div class="wm-code-header">
+                                                <span class="wm-code-dot red"></span>
+                                                <span class="wm-code-dot yellow"></span>
+                                                <span class="wm-code-dot green"></span>
+                                                <span class="wm-code-title">PHP</span>
+                                            </div>
+                                            <pre><code class="language-php">&lt;?php
+$apiKey = 'wm-fd12345678';
+$baseUrl = 'https://wikimind-food-api.web.app/api';
+
+function searchFood($query) {
+    global $apiKey, $baseUrl;
+
+    $url = $baseUrl . '/food/search?query=' . urlencode($query);
+    $headers = ['X-API-KEY: ' . $apiKey];
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    return json_decode($response, true);
+}
+
+// Exemple d'utilisation
+$result = searchFood('pomme');
+print_r($result);
+?&gt;</code></pre>
+                                        </div>
+
+                                    <div class="wm-example-card">
+                                        <h3>Node.js (Axios)</h3>
+                                        <div class="wm-code-block">
+                                            <div class="wm-code-header">
+                                                <span class="wm-code-dot red"></span>
+                                                <span class="wm-code-dot yellow"></span>
+                                                <span class="wm-code-dot green"></span>
+                                                <span class="wm-code-title">Node.js</span>
+                                            </div>
+                                            <pre><code class="language-javascript">const axios = require('axios');
+
+const API_KEY = 'wm-fd12345678';
+const BASE_URL = 'https://wikimind-food-api.web.app/api';
+
+async function searchFood(query) {
+  try {
+    const response = await axios.get(`${BASE_URL}/food/search`, {
+      params: { query },
+      headers: { 'X-API-KEY': API_KEY }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error:', error.response?.data || error.message);
+  }
+}
+
+// Exemple d'utilisation
+searchFood('pomme')
+  .then(data => console.log(data))
+  .catch(error => console.error(error));</code></pre>
+                                        </div>
+                                </div>
+                            </section>
+
+                            <!-- Limits -->
+                            <section id="limits" class="wm-docs-section">
+                                <h2>⚖️ Limites et quotas</h2>
+
+                                <div class="wm-limits-grid">
+                                    <div class="wm-limit-card">
+                                        <h3>📊 Limites par clé API</h3>
+                                        <ul class="wm-docs-list">
+                                            <li><strong>Requêtes par minute:</strong> 100</li>
+                                            <li><strong>Requêtes par heure:</strong> 1000</li>
+                                            <li><strong>Requêtes par jour:</strong> 10 000</li>
+                                        </ul>
+                                        <p class="wm-text-muted">Ces limites sont par clé API. Pour des besoins plus importants, contactez-nous.</p>
+                                    </div>
+
+                                    <div class="wm-limit-card">
+                                        <h3>⏳ Limites de temps</h3>
+                                        <ul class="wm-docs-list">
+                                            <li><strong>Durée maximale d'une clé:</strong> 1 an</li>
+                                            <li><strong>Durée minimale:</strong> 7 jours</li>
+                                            <li><strong>Renouvellement:</strong> Possible à tout moment</li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="wm-limit-card">
+                                        <h3>🔍 Limites de recherche</h3>
+                                        <ul class="wm-docs-list">
+                                            <li><strong>Résultats par requête:</strong> Maximum 50</li>
+                                            <li><strong>Longueur de la requête:</strong> Maximum 100 caractères</li>
+                                            <li><strong>Profondeur des résultats:</strong> Tous les champs disponibles</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <h3>Gestion des limites</h3>
+                                <p>Lorsque vous atteignez une limite, l'API retournera une réponse avec le code d'erreur <code>429 Too Many Requests</code>.</p>
+
+                                <div class="wm-code-block">
+                                    <div class="wm-code-header">
+                                        <span class="wm-code-dot red"></span>
+                                        <span class="wm-code-dot yellow"></span>
+                                        <span class="wm-code-dot green"></span>
+                                        <span class="wm-code-title">JSON</span>
+                                    </div>
+                                    <pre><code class="language-json">{
+  "success": false,
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Vous avez dépassé la limite de requêtes. Veuillez patienter avant de réessayer.",
+    "retryAfter": 60
+  },
+  "timestamp": "2026-06-12T10:00:00Z"
+}</code></pre>
+                                </div>
+
+                                <div class="wm-info-box">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="12" y1="16" x2="12" y2="12"/>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                    </svg>
+                                    <p><strong>Conseil:</strong> Pour éviter les limites, utilisez le cache côté client et regroupez vos requêtes quand c'est possible.</p>
+                                </div>
+                            </section>
+
+                            <!-- Errors -->
+                            <section id="errors" class="wm-docs-section">
+                                <h2>❌ Gestion des erreurs</h2>
+
+                                <p>L'API retourne toujours un objet JSON avec un champ <code>success</code> pour indiquer si la requête a réussi ou non.</p>
+
+                                <h3>Codes d'erreur courants</h3>
+
+                                <table class="wm-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Code HTTP</th>
+                                            <th>Code d'erreur</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>400</td>
+                                            <td>BAD_REQUEST</td>
+                                            <td>Requête mal formée ou paramètres manquants</td>
+                                        </tr>
+                                        <tr>
+                                            <td>401</td>
+                                            <td>UNAUTHORIZED</td>
+                                            <td>Clé API manquante ou invalide</td>
+                                        </tr>
+                                        <tr>
+                                            <td>403</td>
+                                            <td>FORBIDDEN</td>
+                                            <td>Clé API expirée ou désactivée</td>
+                                        </tr>
+                                        <tr>
+                                            <td>404</td>
+                                            <td>NOT_FOUND</td>
+                                            <td>Ressource non trouvée</td>
+                                        </tr>
+                                        <tr>
+                                            <td>429</td>
+                                            <td>RATE_LIMIT_EXCEEDED</td>
+                                            <td>Limite de requêtes dépassée</td>
+                                        </tr>
+                                        <tr>
+                                            <td>500</td>
+                                            <td>INTERNAL_ERROR</td>
+                                            <td>Erreur interne du serveur</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <h3>Exemple de réponse d'erreur</h3>
+                                <div class="wm-code-block">
+                                    <div class="wm-code-header">
+                                        <span class="wm-code-dot red"></span>
+                                        <span class="wm-code-dot yellow"></span>
+                                        <span class="wm-code-dot green"></span>
+                                        <span class="wm-code-title">JSON</span>
+                                    </div>
+                                    <pre><code class="language-json">{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Clé API invalide ou expirée",
+    "details": {
+      "providedKey": "wm-fdXXXXXXXX",
+      "expectedFormat": "wm-fd[8 chiffres]"
+    }
+  },
+  "timestamp": "2026-06-12T10:00:00Z"
+}</code></pre>
+                                </div>
+                            </section>
+
+                            <!-- Changelog -->
+                            <section id="changelog" class="wm-docs-section">
+                                <h2>📜 Changelog</h2>
+
+                                <div class="wm-changelog">
+                                    <div class="wm-changelog-version">
+                                        <h3>Version 1.0.0 - 12 juin 2026</h3>
+                                        <div class="wm-changelog-badge wm-badge-success">Nouveau</div>
+                                        <ul class="wm-docs-list">
+                                            <li>Lancement initial de l'API Wikimind Food</li>
+                                            <li>Intégration complète de la base CIQUAL 2025</li>
+                                            <li>Système de clés API avec expiration</li>
+                                            <li>4 endpoints disponibles</li>
+                                            <li>Documentation complète</li>
+                                            <li>Interface de test intégrée</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </section>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="assets/js/firebase-config.js"></script>
+    <script type="module" src="assets/js/auth.js"></script>
+    <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>

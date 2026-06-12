@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord | Wikimind Food API</title>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div id="app">
+        <header class="wm-header">
+            <div class="wm-container">
+                <div class="wm-logo">WIKIMIND <span class="wm-logo-sub">FOOD API</span></div>
+                <nav class="wm-nav">
+                    <a href="index.html" class="wm-nav-item">Accueil</a>
+                    <a href="docs.html" class="wm-nav-item">Documentation</a>
+                    <a href="test-api.html" class="wm-nav-item">Tester l'API</a>
+                    <div class="wm-user-menu">
+                        <button class="wm-user-btn" id="userBtn">
+                            <span class="wm-user-avatar" id="userAvatar">JD</span>
+                            <span class="wm-user-name" id="userName">Jean Dupont</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </button>
+                        <div class="wm-user-dropdown" id="userDropdown">
+                            <a href="dashboard.html" class="wm-dropdown-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <path d="M9 9h6v6H9z"/>
+                                </svg>
+                                Tableau de bord
+                            </a>
+                            <a href="#" class="wm-dropdown-item" onclick="signOut()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <polyline points="16 17 21 12 16 7"/>
+                                    <line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
+                                Se déconnecter
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <main class="wm-dashboard">
+            <div class="wm-container">
+                <div class="wm-dashboard-header">
+                    <h1>Tableau de bord</h1>
+                    <p>Gérez vos clés API et suivez votre utilisation.</p>
+                </div>
+
+                <div class="wm-dashboard-grid">
+                    <!-- Stats Section -->
+                    <div class="wm-dashboard-card wm-stats-card">
+                        <h3>Statistiques</h3>
+                        <div class="wm-stats-grid">
+                            <div class="wm-stat-item">
+                                <div class="wm-stat-icon">🔑</div>
+                                <div class="wm-stat-info">
+                                    <span class="wm-stat-value" id="totalKeys">0</span>
+                                    <span class="wm-stat-label">Clés API actives</span>
+                                </div>
+                            </div>
+                            <div class="wm-stat-item">
+                                <div class="wm-stat-icon">📊</div>
+                                <div class="wm-stat-info">
+                                    <span class="wm-stat-value" id="totalRequests">0</span>
+                                    <span class="wm-stat-label">Requêtes aujourd'hui</span>
+                                </div>
+                            </div>
+                            <div class="wm-stat-item">
+                                <div class="wm-stat-icon">⏱️</div>
+                                <div class="wm-stat-info">
+                                    <span class="wm-stat-value" id="oldestKey">-</span>
+                                    <span class="wm-stat-label">Plus ancienne clé</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Create API Key Section -->
+                    <div class="wm-dashboard-card">
+                        <div class="wm-card-header">
+                            <h3>Créer une nouvelle clé API</h3>
+                            <p>Générez une clé API unique pour accéder à l'API Wikimind Food.</p>
+                        </div>
+
+                        <form id="createApiKeyForm" class="wm-form">
+                            <div class="wm-form-group">
+                                <label for="apiKeyName">Nom de la clé API</label>
+                                <input type="text" id="apiKeyName" class="wm-input" placeholder="Mon application mobile" required>
+                                <div class="wm-input-hint">Donnez un nom descriptif à votre clé API.</div>
+                            </div>
+
+                            <div class="wm-form-group">
+                                <label for="apiKeyExpiry">Date d'expiration</label>
+                                <select id="apiKeyExpiry" class="wm-input wm-select" required>
+                                    <option value="">Sélectionnez une durée</option>
+                                    <option value="7">7 jours</option>
+                                    <option value="30">30 jours</option>
+                                    <option value="90">90 jours</option>
+                                    <option value="180">6 mois</option>
+                                    <option value="365">1 an</option>
+                                    <option value="0">Jamais</option>
+                                </select>
+                            </div>
+
+                            <!-- Anti-bot Challenge -->
+                            <div class="wm-form-group" id="botChallengeGroup" style="display: none;">
+                                <label>Vérification humaine</label>
+                                <div class="wm-bot-challenge" id="botChallenge">
+                                    <!-- Challenge will be inserted here -->
+                                </div>
+                                <input type="text" id="botChallengeAnswer" class="wm-input" placeholder="Votre réponse" style="margin-top: 10px;">
+                            </div>
+
+                            <div class="wm-form-actions">
+                                <button type="button" class="wm-btn wm-btn-secondary" onclick="generateBotChallenge()">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                        <path d="M2 17l10 5 10-5"/>
+                                        <path d="M2 12l10 5 10-5"/>
+                                    </svg>
+                                    Générer une clé
+                                </button>
+                                <button type="submit" class="wm-btn wm-btn-primary" id="createApiKeyBtn" disabled>
+                                    <span class="wm-btn-text">Créer la clé API</span>
+                                    <span class="wm-btn-loader" style="display: none;"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- API Keys List -->
+                    <div class="wm-dashboard-card wm-full-width">
+                        <div class="wm-card-header">
+                            <h3>Mes clés API</h3>
+                            <div class="wm-card-actions">
+                                <button class="wm-btn-icon" onclick="refreshApiKeys()" title="Rafraîchir">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M23 4v6h-6"/>
+                                        <path d="M1 20v-6h6"/>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="wm-table-container">
+                            <table class="wm-table" id="apiKeysTable">
+                                <thead>
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Clé API</th>
+                                        <th>Date de création</th>
+                                        <th>Expire le</th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="apiKeysTableBody">
+                                    <tr class="wm-empty-state">
+                                        <td colspan="6">
+                                            <div class="wm-empty-content">
+                                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                                    <path d="M2 17l10 5 10-5"/>
+                                                    <path d="M2 12l10 5 10-5"/>
+                                                </svg>
+                                                <p>Aucune clé API créée pour l'instant.</p>
+                                                <p class="wm-empty-hint">Créez votre première clé API en utilisant le formulaire ci-dessus.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- API Key Created Modal -->
+    <div class="wm-modal" id="apiKeyModal">
+        <div class="wm-modal-overlay" onclick="closeApiKeyModal()"></div>
+        <div class="wm-modal-content">
+            <div class="wm-modal-header">
+                <h3>Clé API créée avec succès !</h3>
+                <button class="wm-modal-close" onclick="closeApiKeyModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="wm-modal-body">
+                <p>Votre clé API a été générée. <strong>Copiez-la maintenant</strong>, vous ne pourrez plus la voir après avoir fermé cette fenêtre.</p>
+
+                <div class="wm-api-key-display">
+                    <div class="wm-api-key-label">Votre clé API</div>
+                    <div class="wm-api-key-value" id="generatedApiKey">
+                        wm-fd12345678
+                    </div>
+                    <button class="wm-btn wm-btn-small" onclick="copyApiKey()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        Copier
+                    </button>
+                </div>
+
+                <div class="wm-api-key-info">
+                    <div class="wm-info-item">
+                        <strong>Nom:</strong> <span id="modalApiKeyName">-</span>
+                    </div>
+                    <div class="wm-info-item">
+                        <strong>Expire le:</strong> <span id="modalApiKeyExpiry">-</span>
+                    </div>
+                </div>
+
+                <div class="wm-warning-box">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    <p><strong>Attention:</strong> Cette clé donne accès à votre compte. Ne la partagez avec personne.</p>
+                </div>
+            </div>
+            <div class="wm-modal-footer">
+                <button class="wm-btn wm-btn-secondary" onclick="closeApiKeyModal()">Fermer</button>
+                <a href="test-api.html" class="wm-btn wm-btn-primary">Tester l'API</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="wm-modal" id="deleteModal">
+        <div class="wm-modal-overlay" onclick="closeDeleteModal()"></div>
+        <div class="wm-modal-content wm-modal-small">
+            <div class="wm-modal-header">
+                <h3>Supprimer la clé API</h3>
+                <button class="wm-modal-close" onclick="closeDeleteModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="wm-modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer la clé API <strong id="deleteKeyName">"Ma clé"</strong> ?</p>
+                <p class="wm-text-muted">Cette action est irréversible. Toutes les applications utilisant cette clé cesseront de fonctionner.</p>
+            </div>
+            <div class="wm-modal-footer">
+                <button class="wm-btn wm-btn-secondary" onclick="closeDeleteModal()">Annuler</button>
+                <button class="wm-btn wm-btn-danger" onclick="confirmDeleteApiKey()">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="assets/js/firebase-config.js"></script>
+    <script type="module" src="assets/js/auth.js"></script>
+    <script type="module" src="assets/js/api-manager.js"></script>
+    <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>

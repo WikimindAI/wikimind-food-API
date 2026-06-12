@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wikimind Food API - Tableau de bord</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js"></script>
+</head>
+<body>
+  <!-- Sidebar Overlay -->
+  <div id="sidebar-overlay"></div>
+  
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div id="sidebar-head">
+      <div id="sidebar-logo">WIKIMIND FOOD API</div>
+      <div id="sidebar-head-right">
+        <button id="close-sidebar" class="sidebar-btn" title="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="s-section">Menu Principal</div>
+    
+    <div id="conv-list">
+      <div class="conv-item dashboard-item" data-section="dashboard">
+        <div class="conv-item-title">Tableau de bord</div>
+      </div>
+      <div class="conv-item" data-section="create-key">
+        <div class="conv-item-title">Créer une clé API</div>
+      </div>
+      <div class="conv-item" data-section="my-keys">
+        <div class="conv-item-title">Mes clés API</div>
+      </div>
+      <div class="conv-item" data-section="test-api">
+        <div class="conv-item-title">Tester l'API</div>
+      </div>
+      <div class="conv-item" data-section="docs">
+        <div class="conv-item-title">Documentation</div>
+      </div>
+    </div>
+
+    <div class="s-section">Compte</div>
+    <div id="conv-list">
+      <div class="conv-item" id="profile-item">
+        <div class="conv-item-title">Profil</div>
+      </div>
+      <div class="conv-item" id="logout-item">
+        <div class="conv-item-title">Déconnexion</div>
+      </div>
+    </div>
+
+    <div id="sidebar-foot">
+      <div class="s-user-row" id="user-info">
+        <div class="s-avatar" id="user-avatar">W</div>
+        <div class="s-user-info">
+          <div class="s-user-name" id="user-name">Non connecté</div>
+          <div class="s-user-plan">API Food - Wikimind</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app">
+    <!-- Topbar -->
+    <div id="topbar">
+      <button id="burger" class="tb-btn" title="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <div id="topbar-right">
+        <button id="toggle-theme" class="tb-btn" title="Thème">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div id="chat-wrap">
+      <div id="chat-area">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen">
+          <h1 id="welcome-title">WIKIMIND FOOD API</h1>
+          <p class="welcome-subtitle">Créez et gérez vos clés API pour accéder aux données alimentaires CIQUAL 2025</p>
+        </div>
+
+        <!-- Auth Section -->
+        <div id="auth-section" class="content-section">
+          <div class="auth-container">
+            <h2>Connectez-vous</h2>
+            <p class="auth-description">Créez un compte ou connectez-vous pour commencer à utiliser l'API</p>
+            
+            <div id="auth-tabs">
+              <button class="auth-tab active" data-tab="login">Connexion</button>
+              <button class="auth-tab" data-tab="register">Inscription</button>
+            </div>
+
+            <div id="login-form" class="auth-form">
+              <div class="form-group">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" placeholder="votre@email.com" required>
+              </div>
+              <div class="form-group">
+                <label for="login-password">Mot de passe</label>
+                <input type="password" id="login-password" placeholder="Mot de passe" required>
+              </div>
+              <button id="login-btn" class="btn-primary">Se connecter</button>
+              <button id="google-login-btn" class="btn-secondary">
+                <svg viewBox="0 0 24 24" width="18" height="18">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continuer avec Google
+              </button>
+              <div class="auth-footer">
+                <a href="#" id="forgot-password">Mot de passe oublié ?</a>
+              </div>
+            </div>
+
+            <div id="register-form" class="auth-form hidden">
+              <div class="form-group">
+                <label for="register-email">Email</label>
+                <input type="email" id="register-email" placeholder="votre@email.com" required>
+              </div>
+              <div class="form-group">
+                <label for="register-password">Mot de passe</label>
+                <input type="password" id="register-password" placeholder="Mot de passe" required>
+              </div>
+              <div class="form-group">
+                <label for="register-confirm">Confirmer le mot de passe</label>
+                <input type="password" id="register-confirm" placeholder="Confirmer" required>
+              </div>
+              <button id="register-btn" class="btn-primary">S'inscrire</button>
+              <div class="auth-footer">
+                <a href="#" id="back-to-login">Déjà un compte ? Se connecter</a>
+              </div>
+            </div>
+
+            <div id="auth-error" class="error-message hidden"></div>
+          </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="content-section hidden">
+          <div class="dashboard-header">
+            <h2>Tableau de bord</h2>
+            <p>Bienvenue sur Wikimind Food API. Créez et gérez vos clés d'accès.</p>
+          </div>
+
+          <div class="dashboard-cards">
+            <div class="card">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                  <path d="M2 17l10 5 10-5"/>
+                  <path d="M2 12l10 5 10-5"/>
+                </svg>
+              </div>
+              <div class="card-content">
+                <h3>Clés API</h3>
+                <p id="total-keys">0 clés actives</p>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <div class="card-content">
+                <h3>Requêtes aujourd'hui</h3>
+                <p id="today-requests">0 requêtes</p>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+              </div>
+              <div class="card-content">
+                <h3>Données disponibles</h3>
+                <p id="total-food-items">0 aliments</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="quick-actions">
+            <h3>Actions rapides</h3>
+            <div class="action-buttons">
+              <button class="btn-primary" id="quick-create-key">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Créer une clé API
+              </button>
+              <button class="btn-secondary" id="quick-test-api">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                  <line x1="12" y1="22.08" x2="12" y2="12"/>
+                </svg>
+                Tester l'API
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Create Key Section -->
+        <div id="create-key-section" class="content-section hidden">
+          <div class="section-header">
+            <h2>Créer une nouvelle clé API</h2>
+            <p>Générez une clé d'accès unique pour utiliser l'API Wikimind Food</p>
+          </div>
+
+          <div class="form-container">
+            <form id="create-key-form">
+              <div class="form-group">
+                <label for="key-name">Nom de la clé API</label>
+                <input type="text" id="key-name" placeholder="Ma clé pour l'application X" required>
+                <p class="form-hint">Donnez un nom descriptif pour identifier cette clé</p>
+              </div>
+
+              <div class="form-group">
+                <label for="key-expiry">Validité</label>
+                <select id="key-expiry" required>
+                  <option value="7">7 jours</option>
+                  <option value="30" selected>30 jours</option>
+                  <option value="90">90 jours</option>
+                  <option value="365">1 an</option>
+                  <option value="unlimited">Illimité</option>
+                </select>
+                <p class="form-hint">Sélectionnez la durée de validité de votre clé</p>
+              </div>
+
+              <div class="form-group anti-bot-container">
+                <label>Vérification anti-bot</label>
+                <p class="anti-bot-question" id="anti-bot-question">Chargement...</p>
+                <input type="text" id="anti-bot-answer" placeholder="Votre réponse" required>
+                <p class="form-hint">Répondez à la question pour prouver que vous n'êtes pas un robot</p>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn-secondary" id="cancel-create-key">Annuler</button>
+                <button type="submit" class="btn-primary" id="submit-create-key">
+                  <span>Créer la clé API</span>
+                  <span class="btn-loading hidden">
+                    <svg class="spinner" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70"/>
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </form>
+
+            <div id="key-created-modal" class="modal hidden">
+              <div class="modal-content">
+                <h3>Clé API créée avec succès !</h3>
+                <p>Votre nouvelle clé API a été générée. <strong>Copiez-la maintenant</strong>, vous ne pourrez plus la voir après avoir fermé cette fenêtre.</p>
+                <div class="api-key-display">
+                  <code id="new-api-key">wm-fd12345678</code>
+                  <button class="btn-copy" id="copy-api-key" title="Copier">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="modal-actions">
+                  <button class="btn-secondary" id="close-key-modal">Fermer</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- My Keys Section -->
+        <div id="my-keys-section" class="content-section hidden">
+          <div class="section-header">
+            <h2>Mes clés API</h2>
+            <p>Gérez vos clés d'accès existantes</p>
+          </div>
+
+          <div class="table-container">
+            <div class="table-header">
+              <div class="table-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="keys-search" placeholder="Rechercher une clé...">
+              </div>
+              <button class="btn-primary btn-small" id="refresh-keys">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 4v6h-6"/>
+                  <path d="M1 20v-6h6"/>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                </svg>
+                Actualiser
+              </button>
+            </div>
+
+            <div class="table-wrapper">
+              <table id="keys-table">
+                <thead>
+                  <tr>
+                    <th>Nom</th>
+                    <th>Clé API</th>
+                    <th>Créée le</th>
+                    <th>Expire le</th>
+                    <th>Requêtes aujourd'hui</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="keys-table-body">
+                  <tr class="empty-state">
+                    <td colspan="7">Aucune clé API trouvée. <a href="#" id="create-first-key">Créez votre première clé</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="table-pagination">
+              <button class="pagination-btn" id="prev-page" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+              <span id="pagination-info">Page 1 sur 1</span>
+              <button class="pagination-btn" id="next-page" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div id="revoke-key-modal" class="modal hidden">
+            <div class="modal-content">
+              <h3>Révoker la clé API</h3>
+              <p>Êtes-vous sûr de vouloir révoquer la clé <strong id="revoke-key-name"></strong> ?</p>
+              <p class="warning-text">Cette action est irréversible. Toutes les applications utilisant cette clé cesseront de fonctionner.</p>
+              <div class="modal-actions">
+                <button class="btn-secondary" id="cancel-revoke">Annuler</button>
+                <button class="btn-danger" id="confirm-revoke">Révoker la clé</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Test API Section -->
+        <div id="test-api-section" class="content-section hidden">
+          <div class="section-header">
+            <h2>Tester l'API</h2>
+            <p>Testez les endpoints de l'API directement depuis votre navigateur</p>
+          </div>
+
+          <div class="test-api-container">
+            <div class="test-api-form">
+              <div class="form-group">
+                <label for="test-endpoint">Endpoint</label>
+                <select id="test-endpoint">
+                  <option value="GET /api/food">GET /api/food - Liste des aliments</option>
+                  <option value="GET /api/food/{id}">GET /api/food/{id} - Aliment spécifique</option>
+                  <option value="GET /api/food/search">GET /api/food/search - Recherche</option>
+                  <option value="GET /api/food/category">GET /api/food/category - Par catégorie</option>
+                </select>
+              </div>
+
+              <div id="test-params-container">
+                <!-- Paramètres dynamiques -->
+              </div>
+
+              <div class="form-group">
+                <label for="test-api-key-input">Clé API (optionnelle si connecté)</label>
+                <input type="text" id="test-api-key-input" placeholder="wm-fd12345678">
+              </div>
+
+              <button id="test-api-btn" class="btn-primary">
+                <span>Tester l'API</span>
+                <span class="btn-loading hidden">
+                  <svg class="spinner" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70"/>
+                  </svg>
+                </span>
+              </button>
+            </div>
+
+            <div class="test-api-result">
+              <h3>Résultat</h3>
+              <div class="result-header">
+                <span id="result-status">Statut : -</span>
+                <span id="result-time">Temps : -</span>
+              </div>
+              <div class="result-tabs">
+                <button class="result-tab active" data-tab="response">Réponse</button>
+                <button class="result-tab" data-tab="headers">Headers</button>
+              </div>
+              <div class="result-content">
+                <pre id="result-response"></pre>
+                <pre id="result-headers" class="hidden"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Docs Section -->
+        <div id="docs-section" class="content-section hidden">
+          <div class="section-header">
+            <h2>Documentation de l'API</h2>
+            <p>Découvrez comment utiliser l'API Wikimind Food</p>
+          </div>
+
+          <div class="docs-container">
+            <div class="docs-sidebar">
+              <nav id="docs-nav">
+                <a href="#" class="docs-nav-item active" data-section="docs-intro">Introduction</a>
+                <a href="#" class="docs-nav-item" data-section="docs-auth">Authentification</a>
+                <a href="#" class="docs-nav-item" data-section="docs-endpoints">Endpoints</a>
+                <a href="#" class="docs-nav-item" data-section="docs-examples">Exemples</a>
+                <a href="#" class="docs-nav-item" data-section="docs-limits">Limites et quotas</a>
+                <a href="#" class="docs-nav-item" data-section="docs-errors">Codes d'erreur</a>
+              </nav>
+            </div>
+
+            <div class="docs-content">
+              <div id="docs-intro" class="docs-section">
+                <h3>Introduction</h3>
+                <p>L'API Wikimind Food vous donne accès à une base de données complète d'aliments basée sur CIQUAL 2025. Chaque aliment contient des informations nutritionnelles détaillées, des catégories et des métadonnées.</p>
+                
+                <h4>Fonctionnalités</h4>
+                <ul>
+                  <li>Accès à plus de 2000 aliments</li>
+                  <li>Recherche par nom, catégorie ou ID</li>
+                  <li>Filtrage avancé</li>
+                  <li>Données nutritionnelles complètes</li>
+                </ul>
+
+                <h4>Base URL</h4>
+                <pre class="code-block"><code>https://wikimind-food-api.web.app/api</code></pre>
+              </div>
+
+              <div id="docs-auth" class="docs-section hidden">
+                <h3>Authentification</h3>
+                <p>Toutes les requêtes à l'API doivent inclure une clé API valide dans les headers.</p>
+
+                <h4>Obtenir une clé API</h4>
+                <ol>
+                  <li>Connectez-vous à votre compte Wikimind</li>
+                  <li>Allez dans la section "Créer une clé API"</li>
+                  <li>Remplissez le formulaire et passez le test anti-bot</li>
+                  <li>Copiez votre nouvelle clé API</li>
+                </ol>
+
+                <h4>Utilisation de la clé API</h4>
+                <p>Ajoutez la clé API dans les headers de vos requêtes :</p>
+                <pre class="code-block"><code>X-API-Key: wm-fd12345678</code></pre>
+                <p>Ou en paramètre de requête :</p>
+                <pre class="code-block"><code>?api_key=wm-fd12345678</code></pre>
+              </div>
+
+              <div id="docs-endpoints" class="docs-section hidden">
+                <h3>Endpoints</h3>
+                
+                <div class="endpoint">
+                  <h4>GET /api/food</h4>
+                  <p>Récupère la liste de tous les aliments.</p>
+                  
+                  <h5>Paramètres optionnels</h5>
+                  <table class="params-table">
+                    <thead>
+                      <tr><th>Paramètre</th><th>Type</th><th>Description</th><th>Exemple</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>limit</td><td>number</td><td>Nombre maximum d'aliments à retourner</td><td>100</td></tr>
+                      <tr><td>offset</td><td>number</td><td>Décalage pour la pagination</td><td>0</td></tr>
+                    </tbody>
+                  </table>
+
+                  <h5>Exemple de réponse</h5>
+                  <pre class="code-block language-json"><code>{
+  "items": [
+    {
+      "id": "24999",
+      "names": {"fr": "Dessert (aliment moyen)"},
+      "categories": {"group_code": "0", "subgroup_code": "0"},
+      "nutrition": {"energy": {}, "carbohydrates": {}, "fats": {}},
+      "source": "CIQUAL 2025"
+    },
+    ...
+  ],
+  "total": 2500,
+  "limit": 100,
+  "offset": 0
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                  <h4>GET /api/food/{id}</h4>
+                  <p>Récupère un aliment spécifique par son ID.</p>
+                  
+                  <h5>Paramètres URL</h5>
+                  <table class="params-table">
+                    <thead>
+                      <tr><th>Paramètre</th><th>Type</th><th>Description</th><th>Exemple</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>id</td><td>string</td><td>ID unique de l'aliment</td><td>24999</td></tr>
+                    </tbody>
+                  </table>
+
+                  <h5>Exemple de réponse</h5>
+                  <pre class="code-block language-json"><code>{
+  "id": "24999",
+  "names": {"fr": "Dessert (aliment moyen)"},
+  "categories": {"group_code": "0", "subgroup_code": "0"},
+  "nutrition": {"energy": {}, "carbohydrates": {}, "fats": {}},
+  "minerals": {},
+  "vitamins": {},
+  "source": "CIQUAL 2025",
+  "language": "fr"
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                  <h4>GET /api/food/search</h4>
+                  <p>Recherche des aliments par nom.</p>
+                  
+                  <h5>Paramètres de requête</h5>
+                  <table class="params-table">
+                    <thead>
+                      <tr><th>Paramètre</th><th>Type</th><th>Description</th><th>Exemple</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>q</td><td>string</td><td>Terme de recherche</td><td>pomme</td></tr>
+                      <tr><td>limit</td><td>number</td><td>Nombre maximum de résultats</td><td>50</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="endpoint">
+                  <h4>GET /api/food/category</h4>
+                  <p>Filtre les aliments par catégorie.</p>
+                  
+                  <h5>Paramètres de requête</h5>
+                  <table class="params-table">
+                    <thead>
+                      <tr><th>Paramètre</th><th>Type</th><th>Description</th><th>Exemple</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>group</td><td>string</td><td>Code du groupe</td><td>1</td></tr>
+                      <tr><td>subgroup</td><td>string</td><td>Code du sous-groupe</td><td>101</td></tr>
+                      <tr><td>limit</td><td>number</td><td>Nombre maximum de résultats</td><td>100</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div id="docs-examples" class="docs-section hidden">
+                <h3>Exemples de code</h3>
+
+                <div class="example">
+                  <h4>cURL</h4>
+                  <pre class="code-block language-bash"><code># Récupérer un aliment spécifique
+curl -X GET "https://wikimind-food-api.web.app/api/food/24999" \
+  -H "X-API-Key: wm-fd12345678"
+
+# Rechercher des aliments
+curl -X GET "https://wikimind-food-api.web.app/api/food/search?q=pomme" \
+  -H "X-API-Key: wm-fd12345678"
+
+# Filtrer par catégorie
+curl -X GET "https://wikimind-food-api.web.app/api/food/category?group=1&subgroup=101" \
+  -H "X-API-Key: wm-fd12345678"</code></pre>
+                </div>
+
+                <div class="example">
+                  <h4>JavaScript (Fetch API)</h4>
+                  <pre class="code-block language-javascript"><code>const API_KEY = 'wm-fd12345678';
+const BASE_URL = 'https://wikimind-food-api.web.app/api';
+
+// Récupérer un aliment
+async function getFoodItem(id) {
+  const response = await fetch(`${BASE_URL}/food/${id}`, {
+    headers: {
+      'X-API-Key': API_KEY
+    }
+  });
+  return await response.json();
+}
+
+// Rechercher des aliments
+async function searchFood(query) {
+  const response = await fetch(`${BASE_URL}/food/search?q=${encodeURIComponent(query)}`, {
+    headers: {
+      'X-API-Key': API_KEY
+    }
+  });
+  return await response.json();
+}
+
+// Utilisation
+getFoodItem('24999').then(data => console.log(data));
+searchFood('pomme').then(results => console.log(results));</code></pre>
+                </div>
+
+                <div class="example">
+                  <h4>Python (requests)</h4>
+                  <pre class="code-block language-python"><code>import requests
+
+API_KEY = 'wm-fd12345678'
+BASE_URL = 'https://wikimind-food-api.web.app/api'
+
+# Récupérer un aliment
+response = requests.get(
+    f'{BASE_URL}/food/24999',
+    headers={'X-API-Key': API_KEY}
+)
+data = response.json()
+print(data)
+
+# Rechercher des aliments
+response = requests.get(
+    f'{BASE_URL}/food/search',
+    params={'q': 'pomme'},
+    headers={'X-API-Key': API_KEY}
+)
+results = response.json()
+print(results)</code></pre>
+                </div>
+              </div>
+
+              <div id="docs-limits" class="docs-section hidden">
+                <h3>Limites et quotas</h3>
+                <p>L'API Wikimind Food applique les limites suivantes pour garantir un service de qualité à tous les utilisateurs.</p>
+
+                <h4>Limites par clé API</h4>
+                <table class="limits-table">
+                  <thead>
+                    <tr><th>Type de requête</th><th>Limite</th><th>Période</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Requêtes depuis GitHub Pages</td><td>Illimité</td><td>-</td></tr>
+                    <tr><td>Requêtes externes</td><td>1000</td><td>par jour</td></tr>
+                    <tr><td>Requêtes par minute</td><td>60</td><td>par minute</td></tr>
+                  </tbody>
+                </table>
+
+                <h4>Headers de limite</h4>
+                <p>Chaque réponse inclut les headers suivants pour vous aider à suivre votre utilisation :</p>
+                <pre class="code-block"><code>X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 999
+X-RateLimit-Reset: 86400</code></pre>
+              </div>
+
+              <div id="docs-errors" class="docs-section hidden">
+                <h3>Codes d'erreur</h3>
+                <p>L'API retourne les codes d'erreur HTTP standard. Voici les erreurs spécifiques que vous pouvez rencontrer :</p>
+
+                <table class="errors-table">
+                  <thead>
+                    <tr><th>Code</th><th>Message</th><th>Description</th><th>Solution</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>401</td>
+                      <td>API key required</td>
+                      <td>La clé API est manquante dans la requête</td>
+                      <td>Ajoutez la clé API dans les headers ou paramètres</td>
+                    </tr>
+                    <tr>
+                      <td>403</td>
+                      <td>Invalid API key</td>
+                      <td>La clé API fournie n'est pas valide</td>
+                      <td>Vérifiez votre clé API et créez-en une nouvelle si nécessaire</td>
+                    </tr>
+                    <tr>
+                      <td>403</td>
+                      <td>API key expired</td>
+                      <td>La clé API a expiré</td>
+                      <td>Créez une nouvelle clé API</td>
+                    </tr>
+                    <tr>
+                      <td>403</td>
+                      <td>API key deactivated</td>
+                      <td>La clé API a été révoquée</td>
+                      <td>Créez une nouvelle clé API</td>
+                    </tr>
+                    <tr>
+                      <td>404</td>
+                      <td>Food item not found</td>
+                      <td>L'aliment demandé n'existe pas</td>
+                      <td>Vérifiez l'ID de l'aliment</td>
+                    </tr>
+                    <tr>
+                      <td>429</td>
+                      <td>Daily limit exceeded</td>
+                      <td>La limite quotidienne a été dépassée</td>
+                      <td>Attendez le lendemain ou créez une nouvelle clé</td>
+                    </tr>
+                    <tr>
+                      <td>429</td>
+                      <td>Rate limit exceeded</td>
+                      <td>Trop de requêtes par minute</td>
+                      <td>Attendez quelques secondes avant de réessayer</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Zone (Footer) -->
+    <div id="input-zone">
+      <div id="input-container">
+        <div class="footer-info">
+          <span>© 2026 Wikimind AI. Tous droits réservés.</span>
+          <span class="separator">|</span>
+          <a href="#" id="terms-link">Conditions d'utilisation</a>
+          <span class="separator">|</span>
+          <a href="#" id="privacy-link">Politique de confidentialité</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/anti-bot.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/api-keys.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
